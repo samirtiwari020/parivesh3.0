@@ -3,6 +3,134 @@
 const Application = require("../models/Application");
 const EDS = require("../models/EDS");
 
+exports.assignApplicationForScrutiny = async (req, res) => {
+  try {
+    const { applicationId, scrutinyOfficer, remarks } = req.body;
+
+    const application = await Application.findById(applicationId);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    application.scrutinyOfficer = scrutinyOfficer;
+    application.status = "UNDER_SCRUTINY";
+
+    application.history.push({
+      status: "UNDER_SCRUTINY",
+      updatedBy: req.user._id,
+      remarks: remarks || "Application assigned for scrutiny",
+    });
+
+    await application.save();
+
+    res.status(200).json({
+      success: true,
+      application,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to assign application for scrutiny",
+      error: error.message,
+    });
+  }
+};
+
+exports.getApplicationsForScrutiny = async (req, res) => {
+  try {
+    const filter = req.user.role === "SCRUTINY_OFFICER"
+      ? { scrutinyOfficer: req.user._id }
+      : { status: { $in: ["SUBMITTED", "RESUBMITTED", "UNDER_SCRUTINY"] } };
+
+    const applications = await Application.find(filter)
+      .populate("applicant", "name email")
+      .populate("scrutinyOfficer", "name email")
+      .populate("documents");
+
+    res.status(200).json({
+      success: true,
+      count: applications.length,
+      applications,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch applications for scrutiny",
+      error: error.message,
+    });
+  }
+};
+
+exports.updateScrutinyStatus = async (req, res) => {
+  try {
+    const { status, remarks } = req.body;
+
+    const application = await Application.findById(req.params.applicationId);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    application.status = status;
+    application.scrutinyOfficer = req.user._id;
+    application.scrutinyRemarks = remarks;
+
+    application.history.push({
+      status,
+      updatedBy: req.user._id,
+      remarks: remarks || "Scrutiny status updated",
+    });
+
+    await application.save();
+
+    res.status(200).json({
+      success: true,
+      application,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to update scrutiny status",
+      error: error.message,
+    });
+  }
+};
+
+exports.getScrutinyDetails = async (req, res) => {
+  try {
+    const application = await Application.findById(req.params.applicationId)
+      .populate("applicant", "name email")
+      .populate("scrutinyOfficer", "name email")
+      .populate("documents")
+      .populate("edsId");
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      application,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch scrutiny details",
+      error: error.message,
+    });
+  }
+};
+
 // Get applications assigned for scrutiny
 exports.getScrutinyApplications = async (req, res) => {
   try {

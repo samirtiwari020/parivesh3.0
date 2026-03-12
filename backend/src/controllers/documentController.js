@@ -1,3 +1,5 @@
+const fs = require("fs");
+const path = require("path");
 const Document = require("../models/Document");
 
 // Upload document
@@ -69,6 +71,36 @@ exports.getDocumentById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Error fetching document",
+      error: error.message,
+    });
+  }
+};
+
+exports.downloadDocument = async (req, res) => {
+  try {
+    const document = await Document.findById(req.params.id);
+
+    if (!document) {
+      return res.status(404).json({
+        success: false,
+        message: "Document not found",
+      });
+    }
+
+    const resolvedPath = path.resolve(document.filePath);
+
+    if (!fs.existsSync(resolvedPath)) {
+      return res.status(404).json({
+        success: false,
+        message: "Document file not found",
+      });
+    }
+
+    return res.download(resolvedPath, document.documentName);
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Document download failed",
       error: error.message,
     });
   }

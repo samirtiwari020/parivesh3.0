@@ -1,6 +1,6 @@
 // src/controllers/paymentController.js
 
-const razorpay = require("../config/paymentConfig");
+const getRazorpayClient = require("../config/paymentConfig");
 const Payment = require("../models/Payment");
 const Application = require("../models/Application");
 
@@ -8,6 +8,7 @@ const Application = require("../models/Application");
 exports.createOrder = async (req, res) => {
   try {
     const { applicationId, amount } = req.body;
+    const razorpay = getRazorpayClient();
 
     const options = {
       amount: amount * 100,

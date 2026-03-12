@@ -2,31 +2,29 @@ const express = require("express");
 const cors = require("cors");
 const morgan = require("morgan");
 
-const authRoutes = require("./routes/authRoutes");
-const userRoutes = require("./routes/userRoutes");
-const applicationRoutes = require("./routes/applicationRoutes");
-const documentRoutes = require("./routes/documentRoutes");
-const paymentRoutes = require("./routes/paymentRoutes");
-const edsRoutes = require("./routes/edsRoutes");
-const scrutinyRoutes = require("./routes/scrutinyRoutes");
-const meetingRoutes = require("./routes/meetingRoutes");
-const gistRoutes = require("./routes/gistRoutes");
-const momRoutes = require("./routes/momRoutes");
-const notificationRoutes = require("./routes/notificationRoutes");
-const reportRoutes = require("./routes/reportRoutes");
-const sectorRoutes = require("./routes/sectorRoutes");
-const templateRoutes = require("./routes/templateRoutes");
-const adminRoutes = require("./routes/adminRoutes");
+const authRoutes = require("./src/routes/authRoutes");
+const userRoutes = require("./src/routes/userRoutes");
+const applicationRoutes = require("./src/routes/applicationRoutes");
+const documentRoutes = require("./src/routes/documentRoutes");
+const paymentRoutes = require("./src/routes/paymentRoutes");
+const edsRoutes = require("./src/routes/edsRoutes");
+const scrutinyRoutes = require("./src/routes/scrutinyRoutes");
+const meetingRoutes = require("./src/routes/meetingRoutes");
+const gistRoutes = require("./src/routes/gistRoutes");
+const momRoutes = require("./src/routes/momRoutes");
+const notificationRoutes = require("./src/routes/notificationRoutes");
+const reportRoutes = require("./src/routes/reportRoutes");
+const sectorRoutes = require("./src/routes/sectorRoutes");
+const templateRoutes = require("./src/routes/templateRoutes");
+const adminRoutes = require("./src/routes/adminRoutes");
 
 const app = express();
 
-// Middlewares
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(morgan("dev"));
 
-// Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/applications", applicationRoutes);
@@ -43,14 +41,10 @@ app.use("/api/sectors", sectorRoutes);
 app.use("/api/templates", templateRoutes);
 app.use("/api/admin", adminRoutes);
 
-// Health check route
 app.get("/", (req, res) => {
-  res.json({
-    message: "PARIVESH Backend API Running 🚀"
-  });
+  res.json({ message: "PARIVESH Backend API Running 🚀" });
 });
 
-// Global error handler
 app.use((err, req, res, next) => {
   console.error(err.stack);
 
