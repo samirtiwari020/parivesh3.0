@@ -1,0 +1,127 @@
+@import url('https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&family=Source+Serif+4:opsz,wght@8..60,600;8..60,700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 120 10% 98%;
+    --surface: 0 0% 100%;
+    --foreground: 215 28% 17%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 215 28% 17%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 215 28% 17%;
+
+    --primary: 158 64% 22%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 142 71% 45%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 14% 96%;
+    --muted-foreground: 215 16% 47%;
+
+    --accent: 142 71% 45%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 158 64% 22%;
+
+    --radius: 0.75rem;
+
+    --status-pending: 38 92% 50%;
+    --status-approved: 142 71% 45%;
+    --status-rejected: 0 84% 60%;
+    --status-review: 217 91% 60%;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 215 28% 17%;
+    --sidebar-primary: 158 64% 22%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 120 10% 96%;
+    --sidebar-accent-foreground: 215 28% 17%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 158 64% 22%;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+}
+
+@layer components {
+  .tabular-data {
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+  }
+
+  .gov-ticker {
+    @apply bg-primary text-primary-foreground text-xs font-medium py-2 overflow-hidden flex items-center;
+  }
+
+  .gov-card {
+    @apply bg-surface rounded-2xl shadow-soft transition-shadow hover:shadow-soft-hover;
+  }
+
+  .gov-section {
+    @apply py-16 md:py-24 px-4 md:px-6;
+  }
+
+  .gov-container {
+    @apply max-w-7xl mx-auto;
+  }
+
+  .gov-heading {
+    @apply text-3xl font-serif font-bold text-foreground mb-4;
+  }
+
+  .gov-input {
+    @apply w-full px-4 py-2.5 text-sm rounded-lg border border-input bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all;
+  }
+
+  .gov-label {
+    @apply text-sm font-medium text-foreground mb-1.5 block;
+  }
+
+  .gov-btn-primary {
+    @apply px-6 py-3 bg-primary text-primary-foreground rounded-xl font-medium shadow-soft hover:shadow-soft-hover hover:-translate-y-0.5 transition-all inline-flex items-center gap-2;
+  }
+
+  .gov-btn-secondary {
+    @apply px-6 py-3 bg-surface text-foreground rounded-xl font-medium shadow-soft hover:shadow-soft-hover hover:-translate-y-0.5 transition-all inline-flex items-center gap-2;
+  }
+
+  .gov-status-pending {
+    @apply bg-amber-100 text-amber-800;
+  }
+  .gov-status-approved {
+    @apply bg-emerald-100 text-emerald-800;
+  }
+  .gov-status-rejected {
+    @apply bg-red-100 text-red-800;
+  }
+  .gov-status-review {
+    @apply bg-blue-100 text-blue-800;
+  }
+}
