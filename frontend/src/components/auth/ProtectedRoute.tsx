@@ -7,7 +7,11 @@ interface Props {
 }
 
 export default function ProtectedRoute({ allowedRoles }: Props) {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, isLoading } = useAuth();
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!isAuthenticated || !user) {
     return <Navigate to="/login" replace />;

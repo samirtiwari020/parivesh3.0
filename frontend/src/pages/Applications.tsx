@@ -1,19 +1,22 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 import DataTable from '@/components/tables/DataTable';
-import { mockApplications } from '@/data/mockData';
+import { useApplicantApplications } from '@/hooks/useApplicantApplications';
 
 const PAGE_SIZE = 5;
 
 export default function Applications() {
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
+  const { applications, isLoading, loadError } = useApplicantApplications();
 
-  const filtered = mockApplications.filter(app =>
-    app.id.toLowerCase().includes(search.toLowerCase()) ||
-    app.projectName.toLowerCase().includes(search.toLowerCase())
-  );
+  const filtered = useMemo(() => {
+    return applications.filter((app) =>
+      app.id.toLowerCase().includes(search.toLowerCase()) ||
+      app.projectName.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [applications, search]);
 
   const totalPages = Math.ceil(filtered.length / PAGE_SIZE);
   const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
@@ -34,7 +37,11 @@ export default function Applications() {
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
-            {paged.length > 0 ? paged.map((app) => (
+            {isLoading ? (
+              <tr><td colSpan={7} className="px-6 py-12 text-center text-muted-foreground">Loading applications...</td></tr>
+            ) : loadError ? (
+              <tr><td colSpan={7} className="px-6 py-12 text-center text-destructive">{loadError}</td></tr>
+            ) : paged.length > 0 ? paged.map((app) => (
               <tr key={app.id} className="hover:bg-muted/30 transition-colors group">
                 <td className="px-4 md:px-6 py-4 font-medium tabular-data">{app.id}</td>
                 <td className="px-4 md:px-6 py-4 text-foreground/80 hidden sm:table-cell">{app.projectName}</td>
@@ -43,7 +50,7 @@ export default function Applications() {
                 <td className="px-4 md:px-6 py-4 tabular-data text-foreground/80 hidden lg:table-cell">{app.submissionDate}</td>
                 <td className="px-4 md:px-6 py-4"><StatusBadge status={app.status} /></td>
                 <td className="px-4 md:px-6 py-4 text-right">
-                  <Link to={`/app/proposal/${app.id}`} className="text-primary font-medium text-sm">View</Link>
+                  <Link to={`/applicant/applications`} className="text-primary font-medium text-sm">View</Link>
                 </td>
               </tr>
             )) : (

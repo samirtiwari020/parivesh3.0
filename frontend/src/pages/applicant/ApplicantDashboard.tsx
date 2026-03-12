@@ -3,15 +3,16 @@ import { FileText, Clock, CheckCircle2, XCircle, Plus } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StatCard from '@/components/dashboard/StatCard';
 import StatusBadge from '@/components/dashboard/StatusBadge';
-import { mockProposals } from '@/data/mockProposals';
 import { useAuth } from '@/contexts/AuthContext';
+import { useApplicantApplications } from '@/hooks/useApplicantApplications';
 
 export default function ApplicantDashboard() {
   const { user } = useAuth();
-  const myApps = mockProposals.filter(p => p.submittedBy === user?.id);
-  const approved = myApps.filter(p => p.status === 'Approved').length;
-  const pending = myApps.filter(p => ['Pending', 'Under Review', 'Committee Review', 'Submitted'].includes(p.status)).length;
-  const rejected = myApps.filter(p => p.status === 'Rejected').length;
+  const { applications, isLoading, loadError, metrics } = useApplicantApplications();
+
+  const recentApplications = [...applications]
+    .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    .slice(0, 5);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
@@ -24,10 +25,10 @@ export default function ApplicantDashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-        <StatCard label="Total Applications" value={String(myApps.length)} icon={<FileText size={20} />} colorClass="text-primary" delay={0} />
-        <StatCard label="Pending Review" value={String(pending)} icon={<Clock size={20} />} colorClass="text-status-pending" delay={0.1} />
-        <StatCard label="Approved" value={String(approved)} icon={<CheckCircle2 size={20} />} colorClass="text-accent" delay={0.2} />
-        <StatCard label="Rejected" value={String(rejected)} icon={<XCircle size={20} />} colorClass="text-destructive" delay={0.3} />
+        <StatCard label="Total Applications" value={String(metrics.total)} icon={<FileText size={20} />} colorClass="text-primary" delay={0} />
+        <StatCard label="Pending Review" value={String(metrics.pending)} icon={<Clock size={20} />} colorClass="text-status-pending" delay={0.1} />
+        <StatCard label="Approved" value={String(metrics.approved)} icon={<CheckCircle2 size={20} />} colorClass="text-accent" delay={0.2} />
+        <StatCard label="Rejected" value={String(metrics.rejected)} icon={<XCircle size={20} />} colorClass="text-destructive" delay={0.3} />
       </div>
 
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="gov-card p-0 overflow-hidden">
@@ -46,7 +47,11 @@ export default function ApplicantDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {myApps.slice(0, 5).map(app => (
+              {isLoading ? (
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">Loading applications...</td></tr>
+              ) : loadError ? (
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-destructive">{loadError}</td></tr>
+              ) : recentApplications.length > 0 ? recentApplications.map(app => (
                 <tr key={app.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4 font-medium tabular-data">
                     <Link to={`/applicant/applications`} className="text-primary hover:underline">{app.id}</Link>
@@ -54,9 +59,11 @@ export default function ApplicantDashboard() {
                   <td className="px-6 py-4 hidden sm:table-cell">{app.projectName}</td>
                   <td className="px-6 py-4 hidden md:table-cell">{app.clearanceType}</td>
                   <td className="px-6 py-4 hidden lg:table-cell tabular-data">{app.submissionDate}</td>
-                  <td className="px-6 py-4"><StatusBadge status={app.status as any} /></td>
+                  <td className="px-6 py-4"><StatusBadge status={app.status} /></td>
                 </tr>
-              ))}
+              )) : (
+                <tr><td colSpan={5} className="px-6 py-12 text-center text-muted-foreground">No applications found.</td></tr>
+              )}
             </tbody>
           </table>
         </div>

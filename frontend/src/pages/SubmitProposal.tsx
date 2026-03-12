@@ -7,6 +7,7 @@ import { ArrowLeft, ArrowRight, Check } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FileUploader from '@/components/forms/FileUploader';
 import { indianStates, sectors } from '@/data/mockData';
+import { API_BASE_URL, apiRequest } from '@/lib/api';
 
 const step1Schema = z.object({
   projectName: z.string().min(3, 'Project name is required'),
@@ -23,11 +24,58 @@ const step2Schema = z.object({
 });
 
 const steps = ['Project Details', 'Location', 'Clearance Type', 'Documents', 'Review & Submit'];
+const AUTH_TOKEN_KEY = 'parivesh_auth_token';
+
+const clearanceTypeMap: Record<string, 'EC' | 'FC' | 'WL' | 'CRZ'> = {
+  'Environmental Clearance': 'EC',
+  'Forest Clearance': 'FC',
+  'Wildlife Clearance': 'WL',
+  'CRZ Clearance': 'CRZ',
+};
+
+interface CreateApplicationResponse {
+  success: boolean;
+  application: {
+    _id: string;
+  };
+}
+
+const uploadDocument = async (
+  file: File,
+  documentType: 'EIA_REPORT' | 'MAP' | 'COMPLIANCE_REPORT',
+  applicationId: string,
+  token: string
+) => {
+  const formData = new FormData();
+  formData.append('document', file);
+  formData.append('applicationId', applicationId);
+  formData.append('documentName', file.name);
+  formData.append('documentType', documentType);
+
+  const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    body: formData,
+  });
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data?.message || 'Document upload failed');
+  }
+};
 
 export default function SubmitProposal() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [selectedClearances, setSelectedClearances] = useState<string[]>([]);
+  const [eiaFiles, setEiaFiles] = useState<File[]>([]);
+  const [mapFiles, setMapFiles] = useState<File[]>([]);
+  const [complianceFiles, setComplianceFiles] = useState<File[]>([]);
+  const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
 
   const step1Form = useForm({ resolver: zodResolver(step1Schema), defaultValues: formData });
@@ -50,9 +98,69 @@ export default function SubmitProposal() {
 
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
-  const handleSubmit = () => {
-    console.log('Submit:', { ...formData, clearanceTypes: selectedClearances });
-    navigate('/app');
+  const handleSubmit = async () => {
+    setSubmitError('');
+
+    const clearanceLabel = selectedClearances[0];
+    const clearanceType = clearanceTypeMap[clearanceLabel];
+
+    if (!clearanceType) {
+      setSubmitError('Select at least one valid clearance type.');
+      return;
+    }
+
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    if (!token) {
+      setSubmitError('Please sign in again to submit the application.');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const payload = {
+        projectName: formData.projectName,
+        sector: formData.sector,
+        category: formData.category,
+        clearanceType,
+        state: formData.state,
+        district: formData.district,
+        coordinates: {
+          latitude: Number(formData.latitude),
+          longitude: Number(formData.longitude),
+        },
+        projectCost: Number(formData.estimatedCost),
+        projectDescription: `Selected clearances: ${selectedClearances.join(', ')}`,
+      };
+
+      const createResponse = await apiRequest<CreateApplicationResponse>('/api/applications', {
+        method: 'POST',
+        token,
+        body: JSON.stringify(payload),
+      });
+
+      const applicationId = createResponse.application._id;
+
+      const uploadTasks = [
+        ...eiaFiles.map((file) => uploadDocument(file, 'EIA_REPORT', applicationId, token)),
+        ...mapFiles.map((file) => uploadDocument(file, 'MAP', applicationId, token)),
+        ...complianceFiles.map((file) => uploadDocument(file, 'COMPLIANCE_REPORT', applicationId, token)),
+      ];
+
+      await Promise.all(uploadTasks);
+
+      await apiRequest(`/api/applications/${applicationId}/submit`, {
+        method: 'POST',
+        token,
+      });
+
+      navigate('/applicant/applications');
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Failed to submit proposal.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const toggleClearance = (type: string) => {
@@ -178,9 +286,9 @@ export default function SubmitProposal() {
 
             {currentStep === 3 && (
               <div className="space-y-6">
-                <FileUploader label="EIA Report" accept=".pdf" />
-                <FileUploader label="Project Map" accept=".pdf,.jpg,.png" />
-                <FileUploader label="Compliance Documents" />
+                <FileUploader label="EIA Report" accept=".pdf" onFilesChange={setEiaFiles} />
+                <FileUploader label="Project Map" accept=".pdf,.jpg,.png" onFilesChange={setMapFiles} />
+                <FileUploader label="Compliance Documents" onFilesChange={setComplianceFiles} />
               </div>
             )}
 
@@ -188,16 +296,24 @@ export default function SubmitProposal() {
               <div className="space-y-6">
                 <h3 className="text-lg font-semibold">Review Your Submission</h3>
                 <div className="space-y-3">
-                  {[
-                    ['Project Name', formData.projectName],
-                    ['Sector', formData.sector],
-                    ['Category', formData.category],
-                    ['Estimated Cost', `₹${formData.estimatedCost} Cr`],
-                    ['State', formData.state],
-                    ['District', formData.district],
-                    ['Coordinates', `${formData.latitude}, ${formData.longitude}`],
-                    ['Clearances', selectedClearances.join(', ')],
-                  ].map(([label, value]) => (
+                  {(() => {
+                    const totalUploadedFiles = eiaFiles.length + mapFiles.length + complianceFiles.length;
+                    const uploadedFilesSummary = totalUploadedFiles > 0
+                      ? `${totalUploadedFiles} files (EIA: ${eiaFiles.length}, Map: ${mapFiles.length}, Compliance: ${complianceFiles.length})`
+                      : '0 files';
+
+                    return [
+                      ['Project Name', formData.projectName],
+                      ['Sector', formData.sector],
+                      ['Category', formData.category],
+                      ['Estimated Cost', `₹${formData.estimatedCost} Cr`],
+                      ['State', formData.state],
+                      ['District', formData.district],
+                      ['Coordinates', `${formData.latitude}, ${formData.longitude}`],
+                      ['Clearances', selectedClearances.join(', ')],
+                      ['Uploaded Files', uploadedFilesSummary],
+                    ];
+                  })().map(([label, value]) => (
                     <div key={label} className="flex justify-between items-center py-2 border-b border-border last:border-0">
                       <span className="text-sm text-muted-foreground">{label}</span>
                       <span className="text-sm font-medium text-right">{value || '—'}</span>
@@ -219,11 +335,12 @@ export default function SubmitProposal() {
               Next <ArrowRight size={16} />
             </button>
           ) : (
-            <button onClick={handleSubmit} className="gov-btn-primary text-sm bg-accent">
+            <button onClick={handleSubmit} disabled={isSubmitting} className="gov-btn-primary text-sm bg-accent disabled:opacity-50 disabled:cursor-not-allowed">
               <Check size={16} /> Submit Proposal
             </button>
           )}
         </div>
+        {submitError && <p className="text-xs text-destructive mt-3">{submitError}</p>}
       </div>
     </div>
   );

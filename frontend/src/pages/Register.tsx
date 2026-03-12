@@ -4,6 +4,8 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { Link, useNavigate } from 'react-router-dom';
 import { Landmark, UserPlus, Eye, EyeOff } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { UserRole } from '@/types';
 
 const registerSchema = z.object({
   organizationName: z.string().min(2, 'Organization name is required'),
@@ -22,14 +24,30 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const [showPassword, setShowPassword] = useState(false);
+  const [registerError, setRegisterError] = useState('');
   const navigate = useNavigate();
+  const { register: registerUser } = useAuth();
   const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
   });
 
-  const onSubmit = (data: RegisterForm) => {
-    console.log('Register:', data);
-    navigate('/app');
+  const onSubmit = async (data: RegisterForm) => {
+    setRegisterError('');
+
+    try {
+      await registerUser({
+        name: data.organizationName,
+        email: data.email,
+        password: data.password,
+        phone: data.phone,
+        organization: data.organizationName,
+        role: UserRole.APPLICANT,
+      });
+
+      navigate('/applicant');
+    } catch (error) {
+      setRegisterError(error instanceof Error ? error.message : 'Registration failed');
+    }
   };
 
   return (
@@ -93,6 +111,8 @@ export default function Register() {
                 {errors.confirmPassword && <p className="text-xs text-destructive mt-1">{errors.confirmPassword.message}</p>}
               </div>
             </div>
+
+            {registerError && <p className="text-xs text-destructive">{registerError}</p>}
 
             <button type="submit" disabled={isSubmitting} className="gov-btn-primary w-full justify-center mt-2">
               <UserPlus size={18} /> Create Account

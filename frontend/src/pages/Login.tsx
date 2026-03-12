@@ -10,42 +10,36 @@ import { UserRole } from '@/types';
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters'),
-  role: z.string().min(1, 'Please select a role'),
-  state: z.string().optional(),
 });
 
 type LoginForm = z.infer<typeof loginSchema>;
 
-const roleOptions = [
-  { value: UserRole.APPLICANT, label: 'Project Proponent (Applicant)' },
-  { value: UserRole.STATE_REVIEWER, label: 'State Processing Authority' },
-  { value: UserRole.CENTRAL_REVIEWER, label: 'Central Processing Authority' },
-  { value: UserRole.ADMIN, label: 'Administrator' },
-];
-
-const states = ['Maharashtra', 'Rajasthan', 'Kerala', 'Gujarat', 'Chhattisgarh', 'Jharkhand', 'Andhra Pradesh', 'Madhya Pradesh', 'Tamil Nadu'];
-
 export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
+  const [authError, setAuthError] = useState('');
   const navigate = useNavigate();
   const { login } = useAuth();
-  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<LoginForm>({
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   });
 
-  const selectedRole = watch('role');
+  const onSubmit = async (data: LoginForm) => {
+    setAuthError('');
 
-  const onSubmit = (data: LoginForm) => {
-    const role = data.role as UserRole;
-    login(data.email, data.password, role, data.state);
+    try {
+      const loggedInUser = await login(data.email, data.password);
 
-    const routes: Record<string, string> = {
-      [UserRole.APPLICANT]: '/applicant',
-      [UserRole.STATE_REVIEWER]: '/state',
-      [UserRole.CENTRAL_REVIEWER]: '/central',
-      [UserRole.ADMIN]: '/admin',
-    };
-    navigate(routes[role] || '/');
+      const role = loggedInUser.role as UserRole;
+      const routes: Record<string, string> = {
+        [UserRole.APPLICANT]: '/applicant',
+        [UserRole.STATE_REVIEWER]: '/state',
+        [UserRole.CENTRAL_REVIEWER]: '/central',
+        [UserRole.ADMIN]: '/admin',
+      };
+      navigate(routes[role] || '/');
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : 'Login failed');
+    }
   };
 
   return (
@@ -78,24 +72,7 @@ export default function Login() {
               {errors.password && <p className="text-xs text-destructive mt-1">{errors.password.message}</p>}
             </div>
 
-            <div>
-              <label className="gov-label">Login As</label>
-              <select {...register('role')} className="gov-input">
-                <option value="">Select Role</option>
-                {roleOptions.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
-              </select>
-              {errors.role && <p className="text-xs text-destructive mt-1">{errors.role.message}</p>}
-            </div>
-
-            {selectedRole === UserRole.STATE_REVIEWER && (
-              <div>
-                <label className="gov-label">Assigned State</label>
-                <select {...register('state')} className="gov-input">
-                  <option value="">Select State</option>
-                  {states.map(s => <option key={s} value={s}>{s}</option>)}
-                </select>
-              </div>
-            )}
+            {authError && <p className="text-xs text-destructive">{authError}</p>}
 
             <button type="submit" disabled={isSubmitting} className="gov-btn-primary w-full justify-center">
               <LogIn size={18} /> Sign In
