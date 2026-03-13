@@ -1,5 +1,3 @@
-// src/models/Payment.js
-
 const mongoose = require("mongoose");
 
 const paymentSchema = new mongoose.Schema(
@@ -9,61 +7,21 @@ const paymentSchema = new mongoose.Schema(
       ref: "Application",
       required: true,
     },
-
-    applicant: {
+    user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
-
     amount: {
       type: Number,
       required: true,
     },
-
-    currency: {
-      type: String,
-      default: "INR",
-    },
-
-    paymentGateway: {
-      type: String,
-      enum: ["RAZORPAY", "PAYTM", "STRIPE"],
-      default: "RAZORPAY",
-    },
-
-    orderId: {
-      type: String,
-      required: true,
-    },
-
-    paymentId: {
-      type: String,
-    },
-
-    signature: {
-      type: String,
-    },
-
     status: {
       type: String,
-      enum: ["CREATED", "SUCCESS", "FAILED", "REFUNDED"],
-      default: "CREATED",
+      enum: ["PENDING", "SUCCESS", "FAILED"],
+      default: "PENDING",
     },
-
-    paymentMethod: {
-      type: String,
-    },
-
-    receiptUrl: {
-      type: String,
-    },
-
-    paidAt: {
-      type: Date,
-    },
-
-    failureReason: {
+    transactionId: {
       type: String,
     },
   },
