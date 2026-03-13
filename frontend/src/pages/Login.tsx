@@ -37,6 +37,7 @@ export default function Login() {
         [UserRole.APPLICANT]: '/applicant',
         [UserRole.STATE_REVIEWER]: '/state',
         [UserRole.CENTRAL_REVIEWER]: '/central',
+        [UserRole.COMMITTEE_REVIEWER]: '/committee',
         [UserRole.ADMIN]: '/admin',
       };
       navigate(routes[role] || '/');

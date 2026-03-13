@@ -3,7 +3,7 @@
 const User = require("../models/User");
 const ActivityLog = require("../models/ActivityLog");
 
-const allowedStaffRoles = ["STATE_REVIEWER", "CENTRAL_REVIEWER"];
+const allowedStaffRoles = ["STATE_REVIEWER", "CENTRAL_REVIEWER", "COMMITTEE_REVIEWER"];
 
 const createActivityLog = async ({ userId, action, description, referenceId }) => {
   try {
@@ -88,7 +88,7 @@ exports.createStaffUser = async (req, res) => {
     if (!allowedStaffRoles.includes(role)) {
       return res.status(400).json({
         success: false,
-        message: "Only STATE_REVIEWER or CENTRAL_REVIEWER can be created here",
+        message: "Only STATE_REVIEWER, CENTRAL_REVIEWER or COMMITTEE_REVIEWER can be created here",
       });
     }
 

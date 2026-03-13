@@ -4,7 +4,7 @@ import { apiRequest } from '@/lib/api';
 
 const AUTH_TOKEN_KEY = 'parivesh_auth_token';
 
-type StaffRole = 'STATE_REVIEWER' | 'CENTRAL_REVIEWER';
+type StaffRole = 'STATE_REVIEWER' | 'CENTRAL_REVIEWER' | 'COMMITTEE_REVIEWER';
 
 interface AdminUser {
   _id: string;
@@ -166,7 +166,12 @@ export default function UserManagement() {
         }),
       });
 
-      setFormSuccess(`${role === 'STATE_REVIEWER' ? 'State' : 'Central'} reviewer created successfully.`);
+      const roleLabel = role === 'STATE_REVIEWER'
+        ? 'State'
+        : role === 'CENTRAL_REVIEWER'
+          ? 'Central'
+          : 'Committee';
+      setFormSuccess(`${roleLabel} reviewer created successfully.`);
       setName('');
       setEmail('');
       setPassword('');
@@ -217,6 +222,7 @@ export default function UserManagement() {
               <select value={role} onChange={(e) => setRole(e.target.value as StaffRole)} className="gov-input">
                 <option value="STATE_REVIEWER">State Reviewer</option>
                 <option value="CENTRAL_REVIEWER">Central Reviewer</option>
+                <option value="COMMITTEE_REVIEWER">Committee Reviewer</option>
               </select>
             </div>
 
