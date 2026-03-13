@@ -37,10 +37,18 @@ export default function AdminApplications() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <h2 className="text-xl font-serif font-bold text-foreground">All Proposals</h2>
+    <div className="max-w-6xl mx-auto space-y-6 relative z-10 w-full font-sans">
+      {/* Fixed Background for Applications */}
+      <div 
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-[0.2]"
+        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80")' }}
+      />
+      
+      <div className="bg-white/50 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/50">
+        <h2 className="text-3xl font-serif font-extrabold text-slate-800 drop-shadow-sm tracking-tight">All Proposals</h2>
+      </div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="gov-card p-0 overflow-hidden">
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-xl border border-white/60 p-6 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted-foreground uppercase bg-muted/30">

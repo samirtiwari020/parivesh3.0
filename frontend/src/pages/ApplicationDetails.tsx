@@ -1,9 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { ArrowLeft, Building, Calendar, MapPin } from 'lucide-react';
+import { ArrowLeft, Building, Calendar, MapPin, Download } from 'lucide-react';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 import StatusTimeline from '@/components/dashboard/StatusTimeline';
-import { apiRequest } from '@/lib/api';
+import { apiRequest, API_BASE_URL } from '@/lib/api';
 import type { ApplicationStatus } from '@/types';
 
 const AUTH_TOKEN_KEY = 'parivesh_auth_token';
@@ -144,6 +144,35 @@ export default function ApplicationDetails() {
     }
   };
 
+  const handleDownloadDocument = async (documentId: string, documentName: string) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/documents/download/${documentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to download document');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = documentName;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading document', error);
+      alert('Error downloading document. It may have been removed or unavailable.');
+    }
+  };
+
   if (isLoading) {
     return <div className="max-w-4xl mx-auto text-center py-16 text-muted-foreground">Loading application details...</div>;
   }
@@ -220,9 +249,18 @@ export default function ApplicationDetails() {
             <h2 className="text-lg font-semibold mt-8 mb-4">Documents</h2>
             <div className="space-y-2">
               {application.documents && application.documents.length > 0 ? application.documents.map((document) => (
-                <div key={document._id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                  <span className="text-sm">{document.documentName}</span>
-                  <span className="text-xs text-muted-foreground">{document.documentType}</span>
+                <div key={document._id} className="flex items-center justify-between p-3 rounded-lg bg-muted/50 border border-border/50">
+                  <div>
+                    <span className="block text-sm font-medium">{document.documentName}</span>
+                    <span className="block text-xs text-muted-foreground mt-0.5">{document.documentType}</span>
+                  </div>
+                  <button
+                    onClick={() => handleDownloadDocument(document._id, document.documentName)}
+                    title="Download document"
+                    className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer shrink-0"
+                  >
+                    <Download size={18} />
+                  </button>
                 </div>
               )) : (
                 <p className="text-sm text-muted-foreground">No documents uploaded.</p>

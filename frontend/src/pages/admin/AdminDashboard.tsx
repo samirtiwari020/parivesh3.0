@@ -117,10 +117,16 @@ export default function AdminDashboard() {
   ];
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
-      <div>
-        <h2 className="text-2xl font-serif font-bold text-foreground">System Administration</h2>
-        <p className="text-sm text-muted-foreground mt-1">Manage users, proposals, and system health</p>
+    <div className="max-w-6xl mx-auto space-y-6 md:space-y-8 relative z-10 w-full font-sans">
+      {/* Fixed Background for Dashboard */}
+      <div 
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-[0.25]"
+        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80")' }}
+      />
+      
+      <div className="bg-white/50 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/50">
+        <h2 className="text-3xl font-serif font-extrabold text-slate-800 drop-shadow-sm tracking-tight">System Administration</h2>
+        <p className="text-base text-slate-600 mt-2 font-medium">Manage users, proposals, and system health with real-time analytics.</p>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
@@ -130,9 +136,12 @@ export default function AdminDashboard() {
         <StatCard label="Avg Processing Days" value="45" icon={<TrendingUp size={20} />} colorClass="text-primary" delay={0.3} />
       </div>
 
-      <ClearanceChart data={chartData} />
+      <div className="bg-white/70 backdrop-blur-xl p-6 rounded-[2rem] shadow-xl border border-white/60">
+        <ClearanceChart data={chartData} />
+      </div>
 
-      <DataTable title="Recent Proposals" searchPlaceholder="Search by proposal name...">
+      <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-xl border border-white/60 overflow-hidden px-6 py-6">
+        <DataTable title="Recent Proposals" searchPlaceholder="Search by proposal name...">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
             <tr>
@@ -163,7 +172,9 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </DataTable>
+      </div>
 
+      <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-xl border border-white/60 overflow-hidden px-6 py-6">
       <DataTable title="User Management" searchPlaceholder="Search users...">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
@@ -193,7 +204,9 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </DataTable>
+      </div>
 
+      <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-xl border border-white/60 overflow-hidden px-6 py-6">
       <DataTable title="System Activity Logs" searchPlaceholder="Search logs...">
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
@@ -219,6 +232,7 @@ export default function AdminDashboard() {
           </tbody>
         </table>
       </DataTable>
+      </div>
       {metaError && <p className="text-xs text-destructive">{metaError}</p>}
     </div>
   );

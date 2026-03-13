@@ -181,10 +181,18 @@ export default function UserManagement() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <h2 className="text-xl font-serif font-bold text-foreground">User Management</h2>
+    <div className="max-w-6xl mx-auto space-y-6 relative z-10 w-full font-sans">
+      {/* Fixed Background for User Management */}
+      <div 
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-[0.25]"
+        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&q=80")' }}
+      />
 
-      <div className="gov-card p-6 space-y-4">
+      <div className="bg-white/50 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/50">
+        <h2 className="text-3xl font-serif font-extrabold text-slate-800 drop-shadow-sm tracking-tight">User Management</h2>
+      </div>
+
+      <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-xl border border-white/60 p-6 md:p-8 space-y-4">
         <h3 className="text-base font-semibold">Create Reviewer Account</h3>
 
         <form onSubmit={onCreateStaff} className="space-y-4">
@@ -228,12 +236,13 @@ export default function UserManagement() {
           {formError && <p className="text-xs text-destructive">{formError}</p>}
           {formSuccess && <p className="text-xs text-accent">{formSuccess}</p>}
 
-          <button type="submit" disabled={isCreating} className="gov-btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+          <button type="submit" disabled={isCreating} className="gov-btn-primary w-full disabled:opacity-50 disabled:cursor-not-allowed mt-4 shadow-md hover:shadow-lg transition-all">
             Create Reviewer Account
           </button>
         </form>
       </div>
 
+      <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-xl border border-white/60 overflow-hidden px-6 py-6">
       <DataTable title="All Users" searchPlaceholder="Search users..." onSearch={setSearch}>
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
@@ -279,7 +288,8 @@ export default function UserManagement() {
           </tbody>
         </table>
       </DataTable>
-      {actionError && <p className="text-xs text-destructive">{actionError}</p>}
+      </div>
+      {actionError && <p className="text-xs text-destructive bg-white/50 p-2 rounded-md">{actionError}</p>}
     </div>
   );
 }

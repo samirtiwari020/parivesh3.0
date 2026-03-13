@@ -24,7 +24,7 @@ export default function AdminLayout() {
   const handleLogout = () => { logout(); navigate('/'); };
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-transparent flex relative">
       {sidebarOpen && (
         <div className="fixed inset-0 bg-foreground/20 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
@@ -75,7 +75,7 @@ export default function AdminLayout() {
       </aside>
 
       <main className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        <header className="h-16 md:h-20 bg-surface border-b border-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-20">
+        <header className="h-16 md:h-20 bg-white/70 backdrop-blur-xl border-b border-border/50 flex items-center justify-between px-4 md:px-8 sticky top-0 z-20 shadow-sm">
           <div className="flex items-center gap-3">
             <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors">
               <Menu size={20} />

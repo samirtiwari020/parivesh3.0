@@ -71,9 +71,18 @@ export default function SystemLogs() {
   }, [logs, search]);
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <h2 className="text-xl font-serif font-bold text-foreground">System Activity Logs</h2>
+    <div className="max-w-6xl mx-auto space-y-6 relative z-10 w-full font-sans">
+      {/* Fixed Background for System Logs */}
+      <div 
+        className="fixed inset-0 -z-10 bg-cover bg-center bg-no-repeat opacity-[0.2]"
+        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1557683316-973673baf926?auto=format&fit=crop&q=80")' }}
+      />
 
+      <div className="bg-white/50 backdrop-blur-md rounded-2xl p-6 shadow-sm border border-white/50">
+        <h2 className="text-3xl font-serif font-extrabold text-slate-800 drop-shadow-sm tracking-tight">System Activity Logs</h2>
+      </div>
+
+      <div className="bg-white/70 backdrop-blur-xl rounded-[2rem] shadow-xl border border-white/60 overflow-hidden px-6 py-6">
       <DataTable title="Activity Logs" searchPlaceholder="Search logs..." onSearch={setSearch}>
         <table className="w-full text-sm text-left">
           <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
@@ -103,6 +112,7 @@ export default function SystemLogs() {
           </tbody>
         </table>
       </DataTable>
+      </div>
     </div>
   );
 }

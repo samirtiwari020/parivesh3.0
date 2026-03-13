@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { ArrowRight, Leaf, Trees, Bird, Waves, FileText, CheckCircle2, Clock, Landmark, Download, Phone, Mail, MessageSquare } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import ClearanceChart from '@/components/charts/ClearanceChart';
 import { mockStats, mockNotices } from '@/data/mockData';
@@ -28,6 +28,7 @@ const clearanceCategories = [
 const noticeCategories = ['Environment', 'Forest', 'Wildlife', 'CAMPA'] as const;
 
 export default function Home() {
+  const navigate = useNavigate();
   const [activeNoticeTab, setActiveNoticeTab] = useState<string>('Environment');
 
   const filteredNotices = mockNotices.filter(n => n.category === activeNoticeTab);
@@ -192,7 +193,8 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 whileHover={{ y: -8 }} 
-                className="gov-card p-1 group relative flex flex-col items-start border-0 bg-gradient-to-b from-white to-white/80 shadow-soft hover:shadow-xl transition-all duration-300 rounded-[2rem] overflow-hidden"
+                onClick={() => navigate(`/clearances?category=${cat.title}`)}
+                className="gov-card p-1 group relative flex flex-col items-start border-0 bg-gradient-to-b from-white to-white/80 shadow-soft hover:shadow-xl transition-all duration-300 rounded-[2rem] overflow-hidden cursor-pointer"
               >
                 {/* Glowing border effect */}
                 <div className="absolute inset-0 bg-gradient-to-br from-primary/20 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -204,12 +206,12 @@ export default function Home() {
                   <p className="text-muted-foreground mb-8 flex-1 leading-relaxed">Ensure compliance with {cat.title.toLowerCase()} guidelines. Simplify your submission process.</p>
                   
                   <div className="relative w-full overflow-hidden mt-auto">
-                    <button className="text-sm font-bold text-primary flex items-center gap-2 group-hover:gap-4 transition-all w-full relative z-10">
+                    <div className="text-sm font-bold text-primary flex items-center gap-2 group-hover:gap-4 transition-all w-full relative z-10">
                       View Resources 
                       <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
                         <ArrowRight size={14} />
                       </div>
-                    </button>
+                    </div>
                   </div>
                 </div>
               </motion.div>
