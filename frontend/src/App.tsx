@@ -19,6 +19,8 @@ import Register from "@/pages/Register";
 import Manuals from "@/pages/Manuals";
 import Helpdesk from "@/pages/Helpdesk";
 import NotFound from "@/pages/NotFound";
+import About from "@/pages/About";
+import Clearances from "@/pages/Clearances";
 
 // Applicant pages
 import ApplicantDashboard from "@/pages/applicant/ApplicantDashboard";
@@ -58,6 +60,8 @@ const App = () => (
             {/* Public */}
             <Route element={<PublicLayout />}>
               <Route path="/" element={<Home />} />
+              <Route path="/about" element={<About />} />
+              <Route path="/clearances" element={<Clearances />} />
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
               <Route path="/manuals" element={<Manuals />} />
