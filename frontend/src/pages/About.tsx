@@ -39,8 +39,10 @@ export default function About() {
       
       {/* Hero Section */}
       <div className="relative pt-32 pb-20 md:pt-40 md:pb-32 overflow-hidden border-b border-slate-200">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?w=1920&q=80')] bg-cover bg-center opacity-[0.05] z-0 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-br from-slate-50 via-slate-50/90 to-emerald-50/40 z-0" />
+        {/* Vibrant Natural Landscape Background */}
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1511497584788-876760111969?w=1920&q=80')] bg-cover bg-center opacity-[0.45] z-0 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-br from-slate-50/90 via-slate-50/70 to-emerald-50/20 z-0" />
+        <div className="absolute inset-0 bg-gradient-to-t from-slate-50/90 to-transparent z-0" />
         
         {/* Dynamic geometric accents */}
         <div className="absolute top-20 right-10 w-64 h-64 bg-emerald-400/10 rounded-full blur-[80px] z-0" />
