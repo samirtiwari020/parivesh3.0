@@ -211,6 +211,13 @@ exports.submitApplication = async (req, res) => {
       });
     }
 
+    if (application.paymentStatus !== "PAID") {
+      return res.status(400).json({
+        success: false,
+        message: "Payment required before submission",
+      });
+    }
+
     if (
       isApplicant(req.user) &&
       application.applicant.toString() !== req.user._id.toString()

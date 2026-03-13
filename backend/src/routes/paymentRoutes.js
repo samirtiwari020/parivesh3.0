@@ -1,38 +1,28 @@
-// src/routes/paymentRoutes.js
-
 const express = require("express");
 const router = express.Router();
 
 const {
-  createOrder,
-  verifyPayment,
-  getPaymentHistory
+  createPayment,
+  verifyPayment
 } = require("../controllers/paymentController");
 
 const authMiddleware = require("../middleware/authMiddleware");
 const roleMiddleware = require("../middleware/roleMiddleware");
 
-// Create payment order (Applicant pays application fee)
+// Create payment
 router.post(
-  "/create-order",
+  "/create",
   authMiddleware,
   roleMiddleware("APPLICANT"),
-  createOrder
+  createPayment
 );
 
-// Verify payment after Razorpay/Payment gateway response
+// Verify payment
 router.post(
   "/verify",
   authMiddleware,
   roleMiddleware("APPLICANT"),
   verifyPayment
-);
-
-// Get logged-in user's payment history
-router.get(
-  "/history",
-  authMiddleware,
-  getPaymentHistory
 );
 
 module.exports = router;

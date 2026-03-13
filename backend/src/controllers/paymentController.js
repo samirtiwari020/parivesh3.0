@@ -1,39 +1,28 @@
-// src/controllers/paymentController.js
-
-const getRazorpayClient = require("../config/paymentConfig");
 const Payment = require("../models/Payment");
 const Application = require("../models/Application");
 
-// Create payment order
-exports.createOrder = async (req, res) => {
+// Create payment
+exports.createPayment = async (req, res) => {
   try {
     const { applicationId, amount } = req.body;
-    const razorpay = getRazorpayClient();
 
-    const options = {
-      amount: amount * 100,
-      currency: "INR",
-      receipt: `receipt_${Date.now()}`,
-    };
-
-    const order = await razorpay.orders.create(options);
-
-    await Payment.create({
+    // Create payment record with status PENDING
+    const payment = await Payment.create({
       application: applicationId,
-      applicant: req.user._id,
+      user: req.user._id,
       amount,
-      orderId: order.id,
-      status: "CREATED",
+      status: "PENDING",
     });
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
-      order,
+      message: "Payment created successfully",
+      payment,
     });
   } catch (error) {
     res.status(500).json({
       success: false,
-      message: "Order creation failed",
+      message: "Payment creation failed",
       error: error.message,
     });
   }
@@ -42,9 +31,9 @@ exports.createOrder = async (req, res) => {
 // Verify payment
 exports.verifyPayment = async (req, res) => {
   try {
-    const { orderId, paymentId, signature, applicationId } = req.body;
+    const { paymentId, transactionId } = req.body;
 
-    const payment = await Payment.findOne({ orderId });
+    const payment = await Payment.findById(paymentId);
 
     if (!payment) {
       return res.status(404).json({
@@ -53,14 +42,13 @@ exports.verifyPayment = async (req, res) => {
       });
     }
 
-    payment.paymentId = paymentId;
-    payment.signature = signature;
+    // Mark payment SUCCESS and store transactionId
     payment.status = "SUCCESS";
-    payment.paidAt = new Date();
-
+    payment.transactionId = transactionId;
     await payment.save();
 
-    await Application.findByIdAndUpdate(applicationId, {
+    // Update application.paymentStatus to PAID
+    await Application.findByIdAndUpdate(payment.application, {
       paymentStatus: "PAID",
     });
 
@@ -73,26 +61,6 @@ exports.verifyPayment = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Payment verification failed",
-      error: error.message,
-    });
-  }
-};
-
-// Get payment history
-exports.getPaymentHistory = async (req, res) => {
-  try {
-    const payments = await Payment.find({
-      applicant: req.user._id,
-    }).populate("application");
-
-    res.status(200).json({
-      success: true,
-      payments,
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: "Failed to fetch payment history",
       error: error.message,
     });
   }
