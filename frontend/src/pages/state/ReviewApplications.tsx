@@ -1,14 +1,47 @@
 import { motion } from 'framer-motion';
 import StatusBadge from '@/components/dashboard/StatusBadge';
-import { mockProposals } from '@/data/mockProposals';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
+import { useWorkflowApplications } from '@/hooks/useWorkflowApplications';
+import { apiRequest } from '@/lib/api';
+import { Link } from 'react-router-dom';
+
+const AUTH_TOKEN_KEY = 'parivesh_auth_token';
 
 export default function ReviewApplications() {
   const { user } = useAuth();
   const [filter, setFilter] = useState('all');
-  const stateApps = mockProposals.filter(p => p.state === user?.state);
-  const filtered = filter === 'all' ? stateApps : stateApps.filter(p => p.clearanceType === filter);
+  const [actionError, setActionError] = useState('');
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+  const { applications, isLoading, loadError, refetch } = useWorkflowApplications();
+  const stateApps = applications.filter((application) => application.state === user?.state);
+  const filtered = filter === 'all'
+    ? stateApps
+    : stateApps.filter((application) => application.clearanceType === filter);
+
+  const runAction = async (applicationId: string, action: 'APPROVE' | 'REJECT' | 'FORWARD') => {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    if (!token) {
+      setActionError('Session expired. Please login again.');
+      return;
+    }
+
+    setActionError('');
+    setActionLoadingId(applicationId);
+
+    try {
+      await apiRequest(`/api/applications/${applicationId}/review`, {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ action }),
+      });
+      await refetch();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Action failed');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -37,28 +70,34 @@ export default function ReviewApplications() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map(app => (
+              {isLoading ? (
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">Loading applications...</td></tr>
+              ) : loadError ? (
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-destructive">{loadError}</td></tr>
+              ) : filtered.map(app => (
                 <tr key={app.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4 font-medium tabular-data">{app.id}</td>
                   <td className="px-6 py-4">{app.projectName}</td>
                   <td className="px-6 py-4 hidden md:table-cell">{app.district}</td>
                   <td className="px-6 py-4 hidden md:table-cell">{app.clearanceType}</td>
-                  <td className="px-6 py-4"><StatusBadge status={app.status as any} /></td>
+                  <td className="px-6 py-4"><StatusBadge status={app.status} /></td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <button className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors">Approve</button>
-                      <button className="px-3 py-1 text-xs font-medium rounded-lg bg-status-review/10 text-status-review hover:bg-status-review/20 transition-colors">Forward</button>
-                      <button className="px-3 py-1 text-xs font-medium rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors">Reject</button>
+                      <Link to={`/state/applications/${app.id}`} className="px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">View</Link>
+                      <button onClick={() => runAction(app.id, 'APPROVE')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50">Approve</button>
+                      <button onClick={() => runAction(app.id, 'FORWARD')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-status-review/10 text-status-review hover:bg-status-review/20 transition-colors disabled:opacity-50">Forward</button>
+                      <button onClick={() => runAction(app.id, 'REJECT')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50">Reject</button>
                     </div>
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!isLoading && !loadError && filtered.length === 0 && (
                 <tr><td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">No proposals found for {user?.state}</td></tr>
               )}
             </tbody>
           </table>
         </div>
+        {actionError && <p className="px-6 py-4 text-xs text-destructive border-t border-border">{actionError}</p>}
       </motion.div>
     </div>
   );

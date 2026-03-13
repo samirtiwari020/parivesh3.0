@@ -1,24 +1,49 @@
 import { motion } from 'framer-motion';
-import { FileSearch, Clock, CheckCircle2, Send, MapPin } from 'lucide-react';
+import { FileSearch, Clock, Send, MapPin } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 import ClearanceChart from '@/components/charts/ClearanceChart';
-import { mockProposals } from '@/data/mockProposals';
 import { useAuth } from '@/contexts/AuthContext';
 import { Link } from 'react-router-dom';
+import { useWorkflowApplications } from '@/hooks/useWorkflowApplications';
 
 export default function StateDashboard() {
   const { user } = useAuth();
-  const stateApps = mockProposals.filter(p => p.state === user?.state);
-  const pendingReview = stateApps.filter(p => ['Submitted', 'Pending'].includes(p.status)).length;
-  const underReview = stateApps.filter(p => p.status === 'Under Review').length;
-  const forwarded = stateApps.filter(p => ['Committee Review', 'Recommended'].includes(p.status)).length;
+  const { applications, isLoading, loadError } = useWorkflowApplications();
+  const stateApps = applications.filter((application) => application.state === user?.state);
+  const pendingReview = stateApps.filter((application) => ['Submitted', 'Pending'].includes(application.status)).length;
+  const underReview = stateApps.filter((application) => application.status === 'Under Review').length;
+  const forwarded = stateApps.filter((application) => application.status === 'Committee Review').length;
 
   const chartData = [
-    { name: 'EC', received: stateApps.filter(p => p.clearanceType === 'EC').length, approved: 0, pending: 0, rejected: 0 },
-    { name: 'FC', received: stateApps.filter(p => p.clearanceType === 'FC').length, approved: 0, pending: 0, rejected: 0 },
-    { name: 'WL', received: stateApps.filter(p => p.clearanceType === 'WL').length, approved: 0, pending: 0, rejected: 0 },
-    { name: 'CRZ', received: stateApps.filter(p => p.clearanceType === 'CRZ').length, approved: 0, pending: 0, rejected: 0 },
+    {
+      name: 'EC',
+      received: stateApps.filter((application) => application.clearanceType === 'EC').length,
+      approved: stateApps.filter((application) => application.clearanceType === 'EC' && application.status === 'Approved').length,
+      pending: 0,
+      rejected: 0,
+    },
+    {
+      name: 'FC',
+      received: stateApps.filter((application) => application.clearanceType === 'FC').length,
+      approved: stateApps.filter((application) => application.clearanceType === 'FC' && application.status === 'Approved').length,
+      pending: 0,
+      rejected: 0,
+    },
+    {
+      name: 'WL',
+      received: stateApps.filter((application) => application.clearanceType === 'WL').length,
+      approved: stateApps.filter((application) => application.clearanceType === 'WL' && application.status === 'Approved').length,
+      pending: 0,
+      rejected: 0,
+    },
+    {
+      name: 'CRZ',
+      received: stateApps.filter((application) => application.clearanceType === 'CRZ').length,
+      approved: stateApps.filter((application) => application.clearanceType === 'CRZ' && application.status === 'Approved').length,
+      pending: 0,
+      rejected: 0,
+    },
   ];
 
   return (
@@ -58,21 +83,28 @@ export default function StateDashboard() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {stateApps.slice(0, 5).map(app => (
+              {isLoading ? (
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">Loading applications...</td></tr>
+              ) : loadError ? (
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-destructive">{loadError}</td></tr>
+              ) : stateApps.slice(0, 5).map(app => (
                 <tr key={app.id} className="hover:bg-muted/30 transition-colors">
                   <td className="px-6 py-4 font-medium tabular-data">{app.id}</td>
                   <td className="px-6 py-4 hidden sm:table-cell">{app.projectName}</td>
                   <td className="px-6 py-4 hidden md:table-cell">{app.district}</td>
                   <td className="px-6 py-4 hidden md:table-cell">{app.sector}</td>
-                  <td className="px-6 py-4"><StatusBadge status={app.status as any} /></td>
+                  <td className="px-6 py-4"><StatusBadge status={app.status} /></td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
                       <Link to="/state/review" className="px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">Review</Link>
-                      <button className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors">Forward</button>
+                      <Link to={`/state/applications/${app.id}`} className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors">View</Link>
                     </div>
                   </td>
                 </tr>
               ))}
+              {!isLoading && !loadError && stateApps.length === 0 && (
+                <tr><td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">No proposals found for {user?.state}</td></tr>
+              )}
             </tbody>
           </table>
         </div>

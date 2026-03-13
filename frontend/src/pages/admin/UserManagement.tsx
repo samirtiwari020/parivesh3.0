@@ -36,6 +36,8 @@ export default function UserManagement() {
   const [formError, setFormError] = useState('');
   const [formSuccess, setFormSuccess] = useState('');
   const [isCreating, setIsCreating] = useState(false);
+  const [actionError, setActionError] = useState('');
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const loadUsers = async () => {
     setIsLoading(true);
@@ -66,6 +68,55 @@ export default function UserManagement() {
   useEffect(() => {
     void loadUsers();
   }, []);
+
+  const updateUserStatus = async (user: AdminUser) => {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    if (!token) {
+      setActionError('Admin session missing. Please login again.');
+      return;
+    }
+
+    setActionError('');
+    setActionLoadingId(user._id);
+
+    try {
+      await apiRequest(`/api/admin/users/${user._id}`, {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({ isActive: !user.isActive }),
+      });
+      await loadUsers();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to update user status');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const deleteUser = async (user: AdminUser) => {
+    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+
+    if (!token) {
+      setActionError('Admin session missing. Please login again.');
+      return;
+    }
+
+    setActionError('');
+    setActionLoadingId(user._id);
+
+    try {
+      await apiRequest(`/api/admin/users/${user._id}`, {
+        method: 'DELETE',
+        token,
+      });
+      await loadUsers();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to delete user');
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   const filteredUsers = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -219,8 +270,8 @@ export default function UserManagement() {
                 </td>
                 <td className="px-6 py-4 text-right">
                   <div className="flex justify-end gap-2">
-                    <button className="px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">Edit</button>
-                    <button className="px-3 py-1 text-xs font-medium rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors">Suspend</button>
+                    <button onClick={() => updateUserStatus(user)} disabled={actionLoadingId === user._id} className="px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-50">{user.isActive ? 'Deactivate' : 'Activate'}</button>
+                    <button onClick={() => deleteUser(user)} disabled={actionLoadingId === user._id} className="px-3 py-1 text-xs font-medium rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50">Delete</button>
                   </div>
                 </td>
               </tr>
@@ -228,6 +279,7 @@ export default function UserManagement() {
           </tbody>
         </table>
       </DataTable>
+      {actionError && <p className="text-xs text-destructive">{actionError}</p>}
     </div>
   );
 }

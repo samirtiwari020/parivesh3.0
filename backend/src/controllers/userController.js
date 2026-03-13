@@ -1,8 +1,23 @@
 // src/controllers/userController.js
 
 const User = require("../models/User");
+const ActivityLog = require("../models/ActivityLog");
 
 const allowedStaffRoles = ["STATE_REVIEWER", "CENTRAL_REVIEWER"];
+
+const createActivityLog = async ({ userId, action, description, referenceId }) => {
+  try {
+    await ActivityLog.create({
+      user: userId,
+      action,
+      module: "USER",
+      referenceId,
+      referenceModel: "User",
+      description,
+    });
+  } catch {
+  }
+};
 
 exports.getUserDashboard = async (req, res) => {
   try {
@@ -75,6 +90,13 @@ exports.createStaffUser = async (req, res) => {
     const safeUser = user.toObject();
     delete safeUser.password;
 
+    await createActivityLog({
+      userId: req.user._id,
+      action: "STAFF_USER_CREATED",
+      description: `Staff user created: ${user.email}`,
+      referenceId: user._id,
+    });
+
     res.status(201).json({
       success: true,
       user: safeUser,
@@ -118,6 +140,13 @@ exports.getUserById = async (req, res) => {
         message: "User not found",
       });
     }
+
+    await createActivityLog({
+      userId: req.user._id,
+      action: "USER_UPDATED",
+      description: `User updated: ${user.email}`,
+      referenceId: user._id,
+    });
 
     res.status(200).json({
       success: true,
@@ -174,6 +203,13 @@ exports.deleteUser = async (req, res) => {
         message: "User not found",
       });
     }
+
+    await createActivityLog({
+      userId: req.user._id,
+      action: "USER_DELETED",
+      description: `User deleted: ${user.email}`,
+      referenceId: user._id,
+    });
 
     res.status(200).json({
       success: true,

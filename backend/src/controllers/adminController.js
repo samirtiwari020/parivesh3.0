@@ -3,6 +3,7 @@
 const User = require("../models/User");
 const Application = require("../models/Application");
 const Meeting = require("../models/Meeting");
+const ActivityLog = require("../models/ActivityLog");
 
 // Admin dashboard summary
 exports.getAdminDashboard = async (req, res) => {
@@ -81,6 +82,27 @@ exports.toggleUserStatus = async (req, res) => {
       success: false,
       message: "Failed to update user status",
       error: error.message
+    });
+  }
+};
+
+exports.getActivityLogs = async (req, res) => {
+  try {
+    const logs = await ActivityLog.find()
+      .sort({ createdAt: -1 })
+      .limit(200)
+      .populate("user", "name email role");
+
+    res.status(200).json({
+      success: true,
+      count: logs.length,
+      logs,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch activity logs",
+      error: error.message,
     });
   }
 };

@@ -9,7 +9,8 @@ const {
   getApplicationById,
   updateApplication,
   deleteApplication,
-  submitApplication
+  submitApplication,
+  reviewApplication
 } = require("../controllers/applicationController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -21,10 +22,12 @@ router.get("/", authMiddleware, getAllApplications);
 
 router.get("/:id", authMiddleware, getApplicationById);
 
-router.put("/:id", authMiddleware, roleMiddleware("APPLICANT", "ADMIN"), updateApplication);
+router.put("/:id", authMiddleware, roleMiddleware("APPLICANT", "ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER"), updateApplication);
 
 router.delete("/:id", authMiddleware, roleMiddleware("ADMIN"), deleteApplication);
 
 router.post("/:id/submit", authMiddleware, roleMiddleware("APPLICANT"), submitApplication);
+
+router.post("/:id/review", authMiddleware, roleMiddleware("ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER"), reviewApplication);
 
 module.exports = router;

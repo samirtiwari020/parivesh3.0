@@ -20,6 +20,10 @@ const {
 } = require("../controllers/applicationController");
 
 const {
+  getActivityLogs,
+} = require("../controllers/adminController");
+
+const {
   getAllMeetings,
   createMeeting,
   updateMeeting,
@@ -39,6 +43,9 @@ router.delete("/users/:id", deleteUser);
 router.get("/applications", getAllApplications);
 router.put("/applications/:id", updateApplication);
 router.delete("/applications/:id", deleteApplication);
+
+/* ACTIVITY LOGS */
+router.get("/logs", getActivityLogs);
 
 /* MEETING MANAGEMENT */
 router.get("/meetings", getAllMeetings);
