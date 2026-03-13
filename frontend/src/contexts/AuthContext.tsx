@@ -51,8 +51,14 @@ const AuthContext = createContext<AuthState | undefined>(undefined);
 const AUTH_TOKEN_KEY = 'parivesh_auth_token';
 
 const normalizeRole = (role: string): UserRole => {
+  const normalizedRole = role.trim().toUpperCase();
   const validRoles = Object.values(UserRole) as string[];
-  return (validRoles.includes(role) ? role : UserRole.APPLICANT) as UserRole;
+
+  if (validRoles.includes(normalizedRole)) {
+    return normalizedRole as UserRole;
+  }
+
+  throw new Error(`Unsupported role returned by server: ${role}`);
 };
 
 const mapUser = (user: BackendAuthResponse['user'] | BackendProfileResponse['user']): AuthUser => ({

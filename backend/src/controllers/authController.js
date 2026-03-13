@@ -5,7 +5,14 @@ const env = require("../config/env");
 
 exports.register = async (req, res) => {
   try {
-    const { name, email, password, state, phone, organization } = req.body;
+    const { name, email, password, state, phone, organization, role } = req.body;
+
+    if (role && role !== "APPLICANT") {
+      return res.status(403).json({
+        success: false,
+        message: "Public registration only creates APPLICANT accounts",
+      });
+    }
 
     const existingUser = await User.findOne({ email });
 

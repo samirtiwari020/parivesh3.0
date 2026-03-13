@@ -16,14 +16,18 @@ const getArgValue = (flag) => {
   return process.argv[index + 1];
 };
 
+const positionalArgs = process.argv.slice(2).filter((arg) => !arg.startsWith("--"));
+
+const getPositionalArg = (index) => positionalArgs[index];
+
 const run = async () => {
-  const email = getArgValue("--email") || process.env.STAFF_EMAIL;
-  const password = getArgValue("--password") || process.env.STAFF_PASSWORD;
-  const name = getArgValue("--name") || process.env.STAFF_NAME || "Staff User";
-  const roleInput = (getArgValue("--role") || process.env.STAFF_ROLE || "ADMIN").toUpperCase();
-  const state = getArgValue("--state") || process.env.STAFF_STATE;
-  const organization = getArgValue("--organization") || process.env.STAFF_ORGANIZATION || "PARIVESH";
-  const phone = getArgValue("--phone") || process.env.STAFF_PHONE;
+  const email = getArgValue("--email") || getPositionalArg(0) || process.env.STAFF_EMAIL;
+  const password = getArgValue("--password") || getPositionalArg(1) || process.env.STAFF_PASSWORD;
+  const name = getArgValue("--name") || getPositionalArg(2) || process.env.STAFF_NAME || "Staff User";
+  const roleInput = (getArgValue("--role") || getPositionalArg(3) || process.env.STAFF_ROLE || "ADMIN").toUpperCase();
+  const state = getArgValue("--state") || getPositionalArg(4) || process.env.STAFF_STATE;
+  const organization = getArgValue("--organization") || getPositionalArg(5) || process.env.STAFF_ORGANIZATION || "PARIVESH";
+  const phone = getArgValue("--phone") || getPositionalArg(6) || process.env.STAFF_PHONE;
 
   if (!email || !password) {
     throw new Error("Email and password are required. Use --email and --password arguments.");
