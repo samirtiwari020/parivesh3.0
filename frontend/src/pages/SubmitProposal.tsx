@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check, Send } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Send, FileText } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FileUploader from '@/components/forms/FileUploader';
 import { indianStates, sectors } from '@/data/mockData';

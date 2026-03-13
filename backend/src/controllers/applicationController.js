@@ -3,6 +3,8 @@
 const Application = require("../models/Application");
 const ActivityLog = require("../models/ActivityLog");
 
+const isApplicant = (user) => user?.role === "APPLICANT";
+
 const createActivityLog = async ({ userId, action, description, referenceId }) => {
   try {
     await ActivityLog.create({
@@ -48,7 +50,9 @@ exports.createApplication = async (req, res) => {
 // Get all applications
 exports.getAllApplications = async (req, res) => {
   try {
-    const applications = await Application.find()
+    const query = isApplicant(req.user) ? { applicant: req.user._id } : {};
+
+    const applications = await Application.find(query)
       .populate("applicant", "name email role")
       .populate("documents")
       .populate("meetingId");
@@ -84,6 +88,17 @@ exports.getApplicationById = async (req, res) => {
       });
     }
 
+    if (
+      isApplicant(req.user) &&
+      application.applicant &&
+      application.applicant._id.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
     res.status(200).json({
       success: true,
       application,
@@ -106,6 +121,16 @@ exports.updateApplication = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Application not found",
+      });
+    }
+
+    if (
+      isApplicant(req.user) &&
+      application.applicant.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
       });
     }
 
@@ -183,6 +208,16 @@ exports.submitApplication = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Application not found",
+      });
+    }
+
+    if (
+      isApplicant(req.user) &&
+      application.applicant.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
       });
     }
 
