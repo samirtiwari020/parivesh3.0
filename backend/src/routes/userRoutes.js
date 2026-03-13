@@ -8,7 +8,8 @@ const {
   getUserById,
   updateUser,
   deleteUser,
-  getUserDashboard
+  getUserDashboard,
+  updateProfile
 } = require("../controllers/userController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -19,6 +20,13 @@ router.get(
   "/dashboard",
   authMiddleware,
   getUserDashboard
+);
+
+// Update logged-in user's profile
+router.put(
+  "/profile",
+  authMiddleware,
+  updateProfile
 );
 
 // Admin: Get all users

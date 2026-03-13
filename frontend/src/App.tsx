@@ -27,6 +27,7 @@ import ApplicantDashboard from "@/pages/applicant/ApplicantDashboard";
 import SubmitProposal from "@/pages/SubmitProposal";
 import Applications from "@/pages/Applications";
 import Notifications from "@/pages/Notifications";
+import Settings from "@/pages/Settings";
 import ApplicationDetails from "@/pages/ApplicationDetails";
 
 // State Reviewer pages
@@ -77,7 +78,7 @@ const App = () => (
                 <Route path="applications" element={<Applications />} />
                 <Route path="documents" element={<ComingSoon label="Documents" />} />
                 <Route path="notifications" element={<Notifications />} />
-                <Route path="settings" element={<ComingSoon label="Settings" />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
 
@@ -90,7 +91,7 @@ const App = () => (
                 <Route path="applications/:id" element={<ApplicationDetails />} />
                 <Route path="reports" element={<ComingSoon label="State Reports" />} />
                 <Route path="notifications" element={<Notifications />} />
-                <Route path="settings" element={<ComingSoon label="Settings" />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
 
@@ -104,7 +105,7 @@ const App = () => (
                 <Route path="committee/:id" element={<ApplicationDetails />} />
                 <Route path="reports" element={<ComingSoon label="Central Reports" />} />
                 <Route path="notifications" element={<Notifications />} />
-                <Route path="settings" element={<ComingSoon label="Settings" />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
 
@@ -118,7 +119,7 @@ const App = () => (
                 <Route path="employees" element={<ComingSoon label="Employee Management" />} />
                 <Route path="reports" element={<ComingSoon label="Admin Reports" />} />
                 <Route path="logs" element={<SystemLogs />} />
-                <Route path="settings" element={<ComingSoon label="Admin Settings" />} />
+                <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
 

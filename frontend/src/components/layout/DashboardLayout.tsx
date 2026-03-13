@@ -18,22 +18,30 @@ export default function DashboardLayout() {
   const currentLabel = sidebarLinks.find(l => l.path === location.pathname)?.label || 'Dashboard';
 
   return (
-    <div className="min-h-screen bg-background flex">
+    <div className="min-h-screen bg-emerald-50/30 flex overflow-hidden">
+      {/* Dynamic Background */}
+      <div className="fixed inset-0 bg-gradient-to-br from-emerald-50 via-white to-primary/5 -z-10" />
+      
       {/* Mobile Overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 bg-foreground/20 z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div className="fixed inset-0 bg-emerald-950/40 backdrop-blur-sm z-30 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
-      <aside className={`w-64 bg-surface border-r border-border flex flex-col fixed h-full z-40 transition-transform lg:translate-x-0 ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="h-16 md:h-20 flex items-center px-6 border-b border-border">
-          <Link to="/" className="flex items-center gap-3">
-            <Landmark className="text-primary" size={22} />
-            <h2 className="font-serif font-bold text-lg text-primary">PARIVESH</h2>
+      {/* Sidebar - Premium Dark Green Glass */}
+      <aside className={`w-72 bg-emerald-950/95 backdrop-blur-2xl border-r border-emerald-800/50 flex flex-col fixed h-full z-40 transition-transform duration-300 ease-in-out lg:translate-x-0 ${sidebarOpen ? 'translate-x-0 shadow-2xl' : '-translate-x-full'}`}>
+        <div className="h-20 flex items-center px-8 border-b border-emerald-800/50 bg-emerald-950/50">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-all shadow-inner">
+              <Landmark className="text-accent" size={24} />
+            </div>
+            <h2 className="font-serif font-bold text-xl text-white tracking-wide">PARIVESH</h2>
           </Link>
+          <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-emerald-100 hover:text-white">
+            <X size={24} />
+          </button>
         </div>
 
-        <nav className="flex-1 py-4 md:py-6 px-3 space-y-1 overflow-y-auto">
+        <nav className="flex-1 py-8 px-4 space-y-2 overflow-y-auto custom-scrollbar">
           {sidebarLinks.map((link) => {
             const isActive = location.pathname === link.path;
             return (
@@ -41,53 +49,65 @@ export default function DashboardLayout() {
                 key={link.path}
                 to={link.path}
                 onClick={() => setSidebarOpen(false)}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors relative ${
-                  isActive ? 'text-primary' : 'text-muted-foreground hover:text-foreground hover:bg-muted/50'
+                className={`flex items-center gap-4 px-4 py-3.5 rounded-xl text-sm font-semibold transition-all group relative overflow-hidden ${
+                  isActive ? 'text-emerald-950 shadow-md' : 'text-emerald-100/70 hover:text-white hover:bg-white/5'
                 }`}
               >
                 {isActive && (
                   <motion.div
-                    layoutId="active-nav"
-                    className="absolute inset-0 bg-primary/10 rounded-lg"
+                    layoutId="active-nav-bg"
+                    className="absolute inset-0 bg-accent rounded-xl"
                     transition={{ type: "spring", stiffness: 300, damping: 30 }}
                   />
                 )}
-                <link.icon size={18} className="relative z-10" />
+                {/* Optional subtle glow for active */}
+                {isActive && <div className="absolute inset-0 bg-white/20 blur-md pointer-events-none rounded-xl" />}
+                
+                <link.icon size={20} className={`relative z-10 transition-transform group-hover:scale-110 ${isActive ? 'text-emerald-950' : 'text-emerald-400 group-hover:text-accent'}`} />
                 <span className="relative z-10">{link.label}</span>
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4 border-t border-border">
-          <Link to="/" className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-muted-foreground hover:text-destructive hover:bg-destructive/5 transition-colors">
-            <LogOut size={18} />
+        <div className="p-6 border-t border-emerald-800/50 bg-emerald-950/30">
+          <Link to="/" className="flex items-center gap-3 px-4 py-3 w-full rounded-xl text-sm font-semibold text-emerald-100/70 hover:text-white hover:bg-red-500/20 hover:border-red-500/30 border border-transparent transition-all group">
+            <LogOut size={20} className="group-hover:text-red-400" />
             Sign Out
           </Link>
         </div>
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 lg:ml-64 flex flex-col min-h-screen">
-        <header className="h-16 md:h-20 bg-surface border-b border-border flex items-center justify-between px-4 md:px-8 sticky top-0 z-20">
-          <div className="flex items-center gap-3">
-            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2 rounded-lg hover:bg-muted transition-colors">
+      <main className="flex-1 lg:ml-72 flex flex-col h-screen overflow-hidden">
+        {/* Header - Glassmorphism */}
+        <header className="h-20 bg-white/70 backdrop-blur-xl border-b border-white/50 flex items-center justify-between px-6 md:px-10 sticky top-0 z-20 shadow-sm">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden p-2.5 rounded-xl bg-white border border-emerald-100 text-emerald-900 shadow-sm hover:bg-emerald-50 transition-colors">
               <Menu size={20} />
             </button>
-            <h1 className="text-base md:text-lg font-semibold text-foreground">{currentLabel}</h1>
+            <h1 className="text-xl md:text-2xl font-bold text-emerald-950">{currentLabel}</h1>
           </div>
-          <div className="flex items-center gap-3 md:gap-4">
-            <button className="relative p-2 rounded-lg hover:bg-muted transition-colors">
-              <Bell size={18} className="text-muted-foreground" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-accent" />
+          
+          <div className="flex items-center gap-4 md:gap-6">
+            <button className="relative p-2.5 rounded-xl bg-white border border-emerald-100 text-emerald-600 shadow-sm hover:bg-emerald-50 transition-all group">
+              <Bell size={20} className="group-hover:text-primary" />
+              <span className="absolute top-2 right-2.5 w-2.5 h-2.5 rounded-full bg-accent border-2 border-white animate-pulse" />
             </button>
-            <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-sm">
-              PP
+            <div className="flex items-center gap-3 cursor-pointer group">
+              <div className="hidden md:block text-right">
+                <p className="text-sm font-bold text-emerald-950">Project Proponent</p>
+                <p className="text-xs text-emerald-600 font-medium">pp@example.com</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-emerald-700 flex items-center justify-center text-white font-bold text-sm shadow-md border border-emerald-200 group-hover:shadow-lg transition-all transform group-hover:-translate-y-0.5">
+                PP
+              </div>
             </div>
           </div>
         </header>
 
-        <div className="flex-1 p-4 md:p-8">
+        {/* Scrollable Page Content */}
+        <div className="flex-1 overflow-y-auto p-6 md:p-10 custom-scrollbar">
           <Outlet />
         </div>
       </main>

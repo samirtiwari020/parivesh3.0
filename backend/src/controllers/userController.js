@@ -43,6 +43,37 @@ exports.getUserDashboard = async (req, res) => {
   }
 };
 
+exports.updateProfile = async (req, res) => {
+  try {
+    const { name, phone, organization } = req.body;
+
+    const user = await User.findByIdAndUpdate(
+      req.user._id,
+      { name, phone, organization },
+      { new: true, runValidators: true }
+    ).select("-password");
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      user,
+      message: "Profile updated successfully",
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Profile update failed",
+      error: error.message,
+    });
+  }
+};
+
 exports.createStaffUser = async (req, res) => {
   try {
     const { name, email, password, role, state, phone, organization } = req.body;
