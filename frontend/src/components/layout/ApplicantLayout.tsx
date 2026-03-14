@@ -9,7 +9,6 @@ const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/applicant' },
   { icon: FilePlus, label: 'Submit Application', path: '/applicant/submit' },
   { icon: FolderKanban, label: 'My Applications', path: '/applicant/applications' },
-  { icon: FileCheck, label: 'Documents', path: '/applicant/documents' },
   { icon: Bell, label: 'Notifications', path: '/applicant/notifications' },
   { icon: Settings, label: 'Settings', path: '/applicant/settings' },
 ];

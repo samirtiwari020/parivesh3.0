@@ -25,12 +25,12 @@ export const mockNotices: Notice[] = [
 ];
 
 export const mockManuals: Manual[] = [
-  { id: '1', title: 'User Manual for Project Proponents', description: 'Complete guide for submitting proposals via PARIVESH 3.0', category: 'General', fileSize: '4.2 MB', downloadUrl: '#' },
-  { id: '2', title: 'Environmental Clearance Submission Guide', description: 'Step-by-step walkthrough for EC applications', category: 'Environment', fileSize: '3.1 MB', downloadUrl: '#' },
-  { id: '3', title: 'Forest Clearance Application Manual', description: 'Detailed instructions for FC Stage I & II', category: 'Forest', fileSize: '5.6 MB', downloadUrl: '#' },
-  { id: '4', title: 'Wildlife Clearance Process Guide', description: 'Guide for wildlife clearance under WPA 1972', category: 'Wildlife', fileSize: '2.8 MB', downloadUrl: '#' },
-  { id: '5', title: 'CRZ Clearance Handbook', description: 'CRZ notification compliance and application guide', category: 'CRZ', fileSize: '3.4 MB', downloadUrl: '#' },
-  { id: '6', title: 'State Authority Processing Manual', description: 'For SEIAA/SEAC members processing applications', category: 'Authority', fileSize: '6.1 MB', downloadUrl: '#' },
+  { id: '1', title: 'Organization/User Registration Manual', description: 'Complete guide for submitting proposals via PARIVESH 3.0', category: 'General', fileSize: '4.2 MB', downloadUrl: '/Manuals/UserRegistration.pdf' },
+  { id: '2', title: 'Environmental Clearance Submission Guide', description: 'Step-by-step walkthrough for EC applications', category: 'Environment', fileSize: '3.1 MB', downloadUrl: '/Manuals/ec_environment_clearance_basic_flow.pdf' },
+  { id: '3', title: 'Forest Clearance Application Manual', description: 'Detailed instructions for FC Stage I & II', category: 'Forest', fileSize: '5.6 MB', downloadUrl: '/Manuals/FC_DFO_Role_Manual.pdf' },
+  { id: '4', title: 'Wildlife Clearance Process Guide', description: 'Guide for wildlife clearance under WPA 1972', category: 'Wildlife', fileSize: '2.8 MB', downloadUrl: '/Manuals/Wild_Life_PARIVESH2_Process_Flow.pdf' },
+  { id: '5', title: 'CRZ Clearance Handbook', description: 'CRZ notification compliance and application guide', category: 'CRZ', fileSize: '3.4 MB', downloadUrl: '/Manuals/CRZ_basic_flow_manual.pdf' },
+  { id: '6', title: 'Track your Proposal Manual', description: 'Track your submitted Proposal', category: 'User', fileSize: '6.1 MB', downloadUrl: '/Manuals/TrackYourProposal.pdf' },
 ];
 
 export const mockNotifications: Notification[] = [

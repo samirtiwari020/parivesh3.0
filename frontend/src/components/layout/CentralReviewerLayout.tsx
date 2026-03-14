@@ -8,7 +8,6 @@ import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/central' },
   { icon: FolderKanban, label: 'All Applications', path: '/central/applications' },
-  { icon: BarChart3, label: 'Reports', path: '/central/reports' },
   { icon: Bell, label: 'Notifications', path: '/central/notifications' },
   { icon: Settings, label: 'Settings', path: '/central/settings' },
 ];

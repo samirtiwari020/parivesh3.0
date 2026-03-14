@@ -8,7 +8,7 @@ const fadeUpVariants = {
   visible: (custom: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: custom * 0.1, duration: 0.5, ease: [0.2, 0.65, 0.3, 0.9] },
+    transition: { delay: custom * 0.1, duration: 0.5, ease: [0.2, 0.65, 0.3, 0.9] as [number, number, number, number] },
   }),
 };
 
@@ -22,22 +22,11 @@ const staggerContainer = {
 
 const cardVariants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
+  visible: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 300, damping: 24 } }
 };
 
 export default function Manuals() {
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState('All');
-
-  const categories = ['All', 'Getting Started', 'Proposals', 'Compliance', 'Technical'];
-
-  // Temporary mock data filtering (assuming mockManuals has a category prop)
-  const filteredManuals = mockManuals.filter(manual => {
-    const matchesSearch = manual.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          manual.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = activeCategory === 'All' || manual.category === activeCategory;
-    return matchesSearch && matchesCategory;
-  });
+  const filteredManuals = mockManuals;
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans selection:bg-emerald-500/30 overflow-hidden relative">
@@ -84,23 +73,6 @@ export default function Manuals() {
                 Comprehensive guides, SOPs, and step-by-step instructions to help you navigate and master the PARIVESH 3.0 system seamlessly.
               </motion.p>
             </div>
-
-            {/* Search Bar */}
-            <motion.div 
-              custom={4} initial="hidden" animate="visible" variants={fadeUpVariants}
-              className="w-full lg:w-96 shrink-0 relative group"
-            >
-              <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-400 group-focus-within:text-emerald-500 transition-colors">
-                <Search size={20} />
-              </div>
-              <input 
-                type="text" 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-4 py-4 bg-white border border-slate-200 rounded-2xl focus:border-emerald-400 focus:ring-4 focus:ring-emerald-50 transition-all text-slate-800 placeholder:text-slate-400 outline-none font-medium shadow-sm" 
-                placeholder="Search for guides or keywords..." 
-              />
-            </motion.div>
           </div>
         </div>
       </div>
@@ -108,26 +80,6 @@ export default function Manuals() {
       {/* Main Content Area */}
       <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12 lg:py-16 relative z-10">
         
-        {/* Categories Tab Bar */}
-        <motion.div 
-          custom={5} initial="hidden" animate="visible" variants={fadeUpVariants}
-          className="flex items-center gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide"
-        >
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
-              className={`whitespace-nowrap px-5 py-2.5 rounded-xl text-sm font-bold transition-all duration-300 outline-none flex-shrink-0 ${
-                activeCategory === cat 
-                  ? 'bg-slate-900 text-white shadow-md hover:bg-slate-800' 
-                  : 'bg-white text-slate-600 border border-slate-200 hover:border-slate-300 hover:text-slate-900 shadow-sm'
-              }`}
-            >
-              {cat}
-            </button>
-          ))}
-        </motion.div>
-
         {/* Resources Grid */}
         {filteredManuals.length > 0 ? (
           <motion.div 
@@ -166,9 +118,15 @@ export default function Manuals() {
                   <div className="text-xs font-bold text-slate-400 bg-slate-50 px-3 py-1.5 rounded-lg">
                     {manual.fileSize || '2.4 MB'} • PDF
                   </div>
-                  <button className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 text-slate-600 hover:bg-emerald-500 hover:text-white transition-colors duration-300 group/btn">
+                  <a 
+                    href={manual.downloadUrl} 
+                    download 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-slate-50 text-slate-600 hover:bg-emerald-500 hover:text-white transition-colors duration-300 group/btn"
+                  >
                     <Download size={18} className="group-hover/btn:-translate-y-0.5 transition-transform" />
-                  </button>
+                  </a>
                 </div>
               </motion.div>
             ))}
@@ -183,13 +141,6 @@ export default function Manuals() {
               <FileQuestion size={32} />
             </div>
             <h3 className="text-2xl font-bold text-slate-800 mb-2">No active manuals found.</h3>
-            <p className="text-slate-500 font-medium">Try adjusting your search terms or selecting a different category.</p>
-            <button 
-              onClick={() => { setSearchQuery(''); setActiveCategory('All'); }}
-              className="mt-6 px-6 py-2.5 bg-slate-900 text-white rounded-xl font-bold hover:bg-slate-800 transition-colors"
-            >
-              Clear Search
-            </button>
           </motion.div>
         )}
       </div>
