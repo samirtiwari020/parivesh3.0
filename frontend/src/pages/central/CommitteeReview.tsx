@@ -12,7 +12,7 @@ export default function CommitteeReview() {
   const [actionError, setActionError] = useState('');
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
   const { applications, isLoading, loadError, refetch } = useWorkflowApplications();
-  const committeeApps = applications.filter((application) => application.status === 'Committee Review');
+  const committeeApps = applications.filter((application) => application.isAwaitingCommitteeDecision);
 
   const runAction = async (applicationId: string, action: 'APPROVE' | 'REJECT' | 'SEND_BACK') => {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
@@ -85,7 +85,7 @@ export default function CommitteeReview() {
               Committee Reviews
             </h2>
             <p className="text-emerald-200/80 font-medium text-base">
-              Proposals currently under Expert Appraisal Committee review for national clearance.
+              Applications currently waiting for final committee decision.
             </p>
           </div>
         </motion.div>
@@ -186,6 +186,7 @@ export default function CommitteeReview() {
                         <div className="flex flex-col items-center justify-center text-emerald-300">
                           <Globe size={48} className="mb-4 opacity-50" />
                           <p className="font-bold text-lg text-emerald-800/60">No proposals in committee review.</p>
+                          <p className="text-sm text-emerald-700/60 mt-1">Approved and rejected committee applications remain available on All Applications.</p>
                         </div>
                       </td>
                     </tr>

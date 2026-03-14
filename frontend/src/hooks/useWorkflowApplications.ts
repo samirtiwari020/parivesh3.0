@@ -11,6 +11,9 @@ interface BackendApplication {
   district?: string;
   status: string;
   createdAt: string;
+  history?: Array<{
+    status?: string;
+  }>;
   applicant?: {
     name?: string;
     organization?: string;
@@ -32,6 +35,9 @@ export interface WorkflowApplication {
   status: ApplicationStatus;
   createdAt: string;
   proponent: string;
+  rawStatus: string;
+  hasCommitteeHistory: boolean;
+  isAwaitingCommitteeDecision: boolean;
 }
 
 const AUTH_TOKEN_KEY = 'parivesh_auth_token';
@@ -72,7 +78,12 @@ export function useWorkflowApplications() {
         token,
       });
 
-      const mapped = response.applications.map((application) => ({
+      const mapped = response.applications.map((application) => {
+        const historyStatuses = (application.history || []).map((entry) => entry.status || '');
+        const isAwaitingCommitteeDecision = application.status === 'REFERRED_TO_MEETING' || application.status === 'IN_MEETING';
+        const hasCommitteeHistory = isAwaitingCommitteeDecision || historyStatuses.includes('REFERRED_TO_MEETING') || historyStatuses.includes('IN_MEETING');
+
+        return {
         id: application._id,
         projectName: application.projectName,
         sector: application.sector || '-',
@@ -82,7 +93,11 @@ export function useWorkflowApplications() {
         status: statusMap[application.status] || 'Pending',
         createdAt: application.createdAt,
         proponent: application.applicant?.organization || application.applicant?.name || '-',
-      }));
+        rawStatus: application.status,
+        hasCommitteeHistory,
+        isAwaitingCommitteeDecision,
+      };
+      });
 
       setApplications(mapped);
     } catch (error) {

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { LayoutDashboard, Bell, Settings, LogOut, Landmark, Menu, Users } from 'lucide-react';
+import { LayoutDashboard, Bell, Settings, LogOut, Menu, Users, FolderKanban } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,6 +7,7 @@ import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Committee Review', path: '/committee' },
+  { icon: FolderKanban, label: 'All Applications', path: '/committee/applications' },
   { icon: Bell, label: 'Notifications', path: '/committee/notifications' },
   { icon: Settings, label: 'Settings', path: '/committee/settings' },
 ];

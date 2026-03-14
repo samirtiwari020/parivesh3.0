@@ -39,6 +39,7 @@ import ReviewApplications from "@/pages/state/ReviewApplications";
 import CentralDashboard from "@/pages/central/CentralDashboard";
 import AllApplications from "@/pages/central/AllApplications";
 import CommitteeReview from "@/pages/central/CommitteeReview";
+import CommitteeAllApplications from "@/pages/committee/AllApplications";
 import CentralSettings from "@/pages/central/CentralSettings";
 import CentralNotifications from "@/pages/central/CentralNotifications";
 
@@ -115,6 +116,7 @@ const App = () => (
             <Route element={<ProtectedRoute allowedRoles={[UserRole.COMMITTEE_REVIEWER]} />}>
               <Route path="/committee" element={<CommitteeReviewerLayout />}>
                 <Route index element={<CommitteeReview />} />
+                <Route path="applications" element={<CommitteeAllApplications />} />
                 <Route path="applications/:id" element={<ApplicationDetails />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="settings" element={<Settings />} />
