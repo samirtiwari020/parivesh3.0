@@ -21,7 +21,12 @@ export default function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const currentLabel = adminLinks.find(l => l.path === location.pathname)?.label || 'Admin';
 
-  const handleLogout = () => { logout(); navigate('/'); };
+  const handleLogout = async () => {
+    const confirmed = window.confirm('Are you sure you want to sign out?');
+    if (!confirmed) return;
+    await logout();
+    navigate('/');
+  };
 
   return (
     <div className="min-h-screen bg-transparent flex relative">
