@@ -3,6 +3,7 @@ import { LayoutDashboard, Bell, Settings, LogOut, Landmark, Menu, Users } from '
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
 const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Committee Review', path: '/committee' },
@@ -14,6 +15,7 @@ export default function CommitteeReviewerLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { unreadCount } = useUnreadNotifications();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const currentLabel = sidebarLinks.find((link) => link.path === location.pathname)?.label || 'Committee Review';
 
@@ -52,6 +54,11 @@ export default function CommitteeReviewerLayout() {
                 {isActive && <motion.div layoutId="committee-nav" className="absolute inset-0 bg-primary/10 rounded-lg" transition={{ type: 'spring', stiffness: 300, damping: 30 }} />}
                 <link.icon size={18} className="relative z-10" />
                 <span className="relative z-10">{link.label}</span>
+                {link.path.endsWith('/notifications') && unreadCount > 0 && (
+                  <span className="relative z-10 inline-flex min-w-5 h-5 px-1 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
