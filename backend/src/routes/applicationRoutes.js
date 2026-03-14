@@ -10,7 +10,9 @@ const {
   updateApplication,
   deleteApplication,
   submitApplication,
-  reviewApplication
+  reviewApplication,
+  raiseEDS,
+  resolveEDS
 } = require("../controllers/applicationController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -29,5 +31,9 @@ router.delete("/:id", authMiddleware, roleMiddleware("ADMIN"), deleteApplication
 router.post("/:id/submit", authMiddleware, roleMiddleware("APPLICANT"), submitApplication);
 
 router.post("/:id/review", authMiddleware, roleMiddleware("ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER", "COMMITTEE_REVIEWER"), reviewApplication);
+
+// EDS Routes
+router.post("/:id/raise-eds", authMiddleware, roleMiddleware("ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER"), raiseEDS);
+router.post("/:id/resolve-eds", authMiddleware, roleMiddleware("APPLICANT"), resolveEDS);
 
 module.exports = router;
