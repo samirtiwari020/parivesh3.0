@@ -24,6 +24,18 @@ interface BackendHistoryItem {
   date?: string;
 }
 
+interface BackendGistApplicationEntry {
+  summary?: string;
+  recommendation?: 'RECOMMENDED' | 'NOT_RECOMMENDED' | 'DEFERRED';
+}
+
+interface BackendGist {
+  _id: string;
+  status?: 'DRAFT' | 'FINALIZED';
+  applications?: BackendGistApplicationEntry[];
+  updatedAt?: string;
+}
+
 interface BackendApplication {
   _id: string;
   projectName: string;
@@ -49,6 +61,7 @@ interface BackendApplication {
   };
   documents?: BackendDocument[];
   history?: BackendHistoryItem[];
+  gistId?: BackendGist | string | null;
 }
 
 interface ApplicationResponse {
@@ -387,6 +400,9 @@ export default function ApplicationDetails() {
   }
 
   const currentStatus = mapStatus(application.status);
+  const gistData = typeof application.gistId === 'object' && application.gistId !== null ? application.gistId : null;
+  const gistSummary = gistData?.applications?.[0]?.summary?.trim() || '';
+  const gistRecommendation = gistData?.applications?.[0]?.recommendation;
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
@@ -495,6 +511,25 @@ export default function ApplicationDetails() {
                   </div>
                 ))}
               </div>
+            )}
+
+            {!isApplicantSection && (
+              <>
+                <h2 className="text-lg font-semibold mt-8 mb-4">Auto-generated GIST</h2>
+                {gistSummary ? (
+                  <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
+                    <pre className="whitespace-pre-wrap break-words text-sm text-foreground font-sans leading-6">{gistSummary}</pre>
+                    <div className="text-xs text-muted-foreground border-t border-border pt-3 space-y-1">
+                      <p>Recommendation: {gistRecommendation || '—'}</p>
+                      <p>Last updated: {formatDateTime(gistData?.updatedAt)}</p>
+                    </div>
+                  </div>
+                ) : application.status === 'REFERRED_TO_MEETING' ? (
+                  <p className="text-sm text-muted-foreground">GIST is being prepared and will be available shortly.</p>
+                ) : (
+                  <p className="text-sm text-muted-foreground">GIST will be generated automatically after central reviewer approval.</p>
+                )}
+              </>
             )}
 
             <h2 className="text-lg font-semibold mt-8 mb-4">Documents</h2>
