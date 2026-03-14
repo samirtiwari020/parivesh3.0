@@ -42,6 +42,7 @@ const userSchema = new mongoose.Schema(
         "APPLICANT",
         "STATE_REVIEWER",
         "CENTRAL_REVIEWER",
+        "COMMITTEE_REVIEWER",
         "SCRUTINY_OFFICER",
         "MOM_SECRETARIAT",
         "ADMIN",

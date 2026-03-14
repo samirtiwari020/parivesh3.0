@@ -23,6 +23,7 @@ export default function ProtectedRoute({ allowedRoles }: Props) {
       [UserRole.APPLICANT]: '/applicant',
       [UserRole.STATE_REVIEWER]: '/state',
       [UserRole.CENTRAL_REVIEWER]: '/central',
+      [UserRole.COMMITTEE_REVIEWER]: '/committee',
       [UserRole.ADMIN]: '/admin',
     };
     return <Navigate to={roleRoutes[user.role]} replace />;

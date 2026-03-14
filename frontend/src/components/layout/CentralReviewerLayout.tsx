@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { LayoutDashboard, FolderKanban, Users, BarChart3, Bell, Settings, LogOut, Landmark, Menu } from 'lucide-react';
+import { LayoutDashboard, FolderKanban, BarChart3, Bell, Settings, LogOut, Landmark, Menu } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
@@ -7,7 +7,6 @@ import { useAuth } from '@/contexts/AuthContext';
 const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/central' },
   { icon: FolderKanban, label: 'All Applications', path: '/central/applications' },
-  { icon: Users, label: 'Committee Reviews', path: '/central/committee' },
   { icon: BarChart3, label: 'Reports', path: '/central/reports' },
   { icon: Bell, label: 'Notifications', path: '/central/notifications' },
   { icon: Settings, label: 'Settings', path: '/central/settings' },

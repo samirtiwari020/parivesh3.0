@@ -82,14 +82,20 @@ export default function ApplicationDetails() {
   const section = useMemo(() => {
     if (location.pathname.startsWith('/admin')) return 'admin';
     if (location.pathname.startsWith('/state')) return 'state';
+    if (location.pathname.startsWith('/committee')) return 'committee';
     return 'central';
   }, [location.pathname]);
 
   const backPath = section === 'admin'
     ? '/admin/applications'
+    : section === 'committee'
+      ? '/committee'
     : section === 'state'
       ? '/state/review'
       : '/central/applications';
+
+  const canForward = section === 'state';
+  const canSendBack = section === 'central' || section === 'committee';
 
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
 
@@ -306,7 +312,7 @@ export default function ApplicationDetails() {
             >
               Reject
             </button>
-            {section !== 'admin' && (
+            {canForward && (
               <button
                 onClick={() => takeAction('FORWARD')}
                 disabled={pendingAction !== null}
@@ -315,7 +321,7 @@ export default function ApplicationDetails() {
                 Forward
               </button>
             )}
-            {section === 'central' && (
+            {canSendBack && (
               <button
                 onClick={() => takeAction('SEND_BACK')}
                 disabled={pendingAction !== null}

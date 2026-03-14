@@ -10,6 +10,7 @@ import PublicLayout from "@/components/layout/PublicLayout";
 import ApplicantLayout from "@/components/layout/ApplicantLayout";
 import StateReviewerLayout from "@/components/layout/StateReviewerLayout";
 import CentralReviewerLayout from "@/components/layout/CentralReviewerLayout";
+import CommitteeReviewerLayout from "@/components/layout/CommitteeReviewerLayout";
 import AdminLayout from "@/components/layout/AdminLayout";
 import ProtectedRoute from "@/components/auth/ProtectedRoute";
 
@@ -100,10 +101,18 @@ const App = () => (
               <Route path="/central" element={<CentralReviewerLayout />}>
                 <Route index element={<CentralDashboard />} />
                 <Route path="applications" element={<AllApplications />} />
-                <Route path="committee" element={<CommitteeReview />} />
                 <Route path="applications/:id" element={<ApplicationDetails />} />
-                <Route path="committee/:id" element={<ApplicationDetails />} />
                 <Route path="reports" element={<ComingSoon label="Central Reports" />} />
+                <Route path="notifications" element={<Notifications />} />
+                <Route path="settings" element={<Settings />} />
+              </Route>
+            </Route>
+
+            {/* Committee Reviewer */}
+            <Route element={<ProtectedRoute allowedRoles={[UserRole.COMMITTEE_REVIEWER]} />}>
+              <Route path="/committee" element={<CommitteeReviewerLayout />}>
+                <Route index element={<CommitteeReview />} />
+                <Route path="applications/:id" element={<ApplicationDetails />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="settings" element={<Settings />} />
               </Route>

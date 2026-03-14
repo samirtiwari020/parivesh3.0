@@ -258,22 +258,39 @@ exports.submitApplication = async (req, res) => {
   }
 };
 
-const reviewActionMap = {
-  APPROVE: "APPROVED",
-  REJECT: "REJECTED",
-  FORWARD: "REFERRED_TO_MEETING",
-  SEND_BACK: "EDS_RAISED",
+const roleActionStatusMap = {
+  ADMIN: {
+    APPROVE: "APPROVED",
+    REJECT: "REJECTED",
+    FORWARD: "REFERRED_TO_MEETING",
+    SEND_BACK: "EDS_RAISED",
+  },
+  STATE_REVIEWER: {
+    APPROVE: "APPROVED",
+    REJECT: "REJECTED",
+    FORWARD: "REFERRED_TO_MEETING",
+  },
+  CENTRAL_REVIEWER: {
+    APPROVE: "REFERRED_TO_MEETING",
+    REJECT: "REJECTED",
+    SEND_BACK: "EDS_RAISED",
+  },
+  COMMITTEE_REVIEWER: {
+    APPROVE: "APPROVED",
+    REJECT: "REJECTED",
+    SEND_BACK: "EDS_RAISED",
+  },
 };
 
 exports.reviewApplication = async (req, res) => {
   try {
     const { action, remarks } = req.body;
-    const status = reviewActionMap[action];
+    const status = roleActionStatusMap[req.user.role]?.[action];
 
     if (!status) {
       return res.status(400).json({
         success: false,
-        message: "Invalid review action",
+        message: "Invalid review action for current role",
       });
     }
 
@@ -283,6 +300,13 @@ exports.reviewApplication = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Application not found",
+      });
+    }
+
+    if (req.user.role === "COMMITTEE_REVIEWER" && application.status !== "REFERRED_TO_MEETING") {
+      return res.status(400).json({
+        success: false,
+        message: "Only applications approved by central reviewer can be reviewed by committee",
       });
     }
 

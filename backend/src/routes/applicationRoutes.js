@@ -28,6 +28,6 @@ router.delete("/:id", authMiddleware, roleMiddleware("ADMIN"), deleteApplication
 
 router.post("/:id/submit", authMiddleware, roleMiddleware("APPLICANT"), submitApplication);
 
-router.post("/:id/review", authMiddleware, roleMiddleware("ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER"), reviewApplication);
+router.post("/:id/review", authMiddleware, roleMiddleware("ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER", "COMMITTEE_REVIEWER"), reviewApplication);
 
 module.exports = router;

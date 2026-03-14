@@ -69,7 +69,7 @@ export default function CommitteeReview() {
                   <td className="px-6 py-4"><StatusBadge status={app.status} /></td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex justify-end gap-2">
-                      <Link to={`/central/committee/${app.id}`} className="px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">View</Link>
+                      <Link to={`/committee/applications/${app.id}`} className="px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">View</Link>
                       <button onClick={() => runAction(app.id, 'APPROVE')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50">Approve</button>
                       <button onClick={() => runAction(app.id, 'REJECT')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50">Reject</button>
                       <button onClick={() => runAction(app.id, 'SEND_BACK')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-status-pending/10 text-status-pending hover:bg-status-pending/20 transition-colors disabled:opacity-50">Send Back</button>
