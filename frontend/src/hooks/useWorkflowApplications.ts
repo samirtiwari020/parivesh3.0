@@ -18,6 +18,10 @@ interface BackendApplication {
     name?: string;
     organization?: string;
   };
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 interface BackendApplicationsResponse {
@@ -38,6 +42,10 @@ export interface WorkflowApplication {
   rawStatus: string;
   hasCommitteeHistory: boolean;
   isAwaitingCommitteeDecision: boolean;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 const AUTH_TOKEN_KEY = 'parivesh_auth_token';
@@ -96,6 +104,7 @@ export function useWorkflowApplications() {
         rawStatus: application.status,
         hasCommitteeHistory,
         isAwaitingCommitteeDecision,
+        coordinates: application.coordinates,
       };
       });
 
