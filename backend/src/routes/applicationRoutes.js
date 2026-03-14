@@ -33,7 +33,7 @@ router.post("/:id/submit", authMiddleware, roleMiddleware("APPLICANT"), submitAp
 router.post("/:id/review", authMiddleware, roleMiddleware("ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER", "COMMITTEE_REVIEWER"), reviewApplication);
 
 // EDS Routes
-router.post("/:id/raise-eds", authMiddleware, roleMiddleware("ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER"), raiseEDS);
+router.post("/:id/raise-eds", authMiddleware, roleMiddleware("ADMIN", "STATE_REVIEWER", "CENTRAL_REVIEWER", "COMMITTEE_REVIEWER"), raiseEDS);
 router.post("/:id/resolve-eds", authMiddleware, roleMiddleware("APPLICANT"), resolveEDS);
 
 module.exports = router;

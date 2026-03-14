@@ -9,7 +9,6 @@ const sidebarLinks = [
   { icon: LayoutDashboard, label: 'Dashboard', path: '/state' },
   { icon: FileSearch, label: 'Review Applications', path: '/state/review' },
   { icon: FolderKanban, label: 'State Applications', path: '/state/applications' },
-  { icon: BarChart3, label: 'Reports', path: '/state/reports' },
   { icon: Bell, label: 'Notifications', path: '/state/notifications' },
   { icon: Settings, label: 'Settings', path: '/state/settings' },
 ];

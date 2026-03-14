@@ -30,10 +30,10 @@ export interface Proposal {
   remarks?: string;
 }
 
-export type ProposalStatus = 'Submitted' | 'Under Review' | 'Committee Review' | 'Recommended' | 'Approved' | 'Rejected' | 'Pending' | 'Clarification Requested';
+export type ProposalStatus = 'Submitted' | 'State' | 'Central' | 'Committee' | 'Approved' | 'Rejected' | 'Pending' | 'Clarification Requested';
 
 export type ClearanceType = 'Environment' | 'Forest' | 'Wildlife' | 'CRZ';
-export type ApplicationStatus = 'Submitted' | 'Under Review' | 'Committee Review' | 'Recommended' | 'Approved' | 'Rejected' | 'Pending' | 'Clarification Requested';
+export type ApplicationStatus = 'Submitted' | 'State' | 'Central' | 'Committee' | 'Approved' | 'Rejected' | 'Pending' | 'Clarification Requested';
 
 export interface Application {
   id: string;

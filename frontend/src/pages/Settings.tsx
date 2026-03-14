@@ -17,7 +17,7 @@ type ProfileForm = z.infer<typeof profileSchema>;
 
 export default function Settings() {
   const { user, login } = useAuth();
-  const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'security'>('profile');
+  const [activeTab, setActiveTab] = useState<'profile'>('profile');
   const [isSuccess, setIsSuccess] = useState(false);
   const [updateError, setUpdateError] = useState('');
 
@@ -115,47 +115,25 @@ export default function Settings() {
         {/* Settings Grid (Glassmorphism Area) */}
         <div className="grid lg:grid-cols-12 gap-6 lg:gap-8">
           
-          {/* Sidebar Tabs (Glass Buttons) */}
-          <motion.div 
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: 0.1 }}
-            className="lg:col-span-4 flex flex-col gap-3"
-          >
-            <button 
-              onClick={() => setActiveTab('profile')}
-              className={`w-full flex items-center justify-between px-6 py-5 rounded-3xl font-bold transition-all duration-300 border backdrop-blur-xl ${
-                activeTab === 'profile' 
-                  ? 'bg-emerald-600 border-emerald-500 text-white shadow-xl shadow-emerald-900/10 scale-[1.02]' 
-                  : 'bg-white/60 border-emerald-100/60 text-emerald-800 hover:bg-white hover:border-emerald-200 hover:shadow-md'
-              }`}
+            {/* Sidebar Tabs (Glass Buttons) */}
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 }}
+              className="lg:col-span-4 flex flex-col gap-3"
             >
-              <span className="flex items-center gap-3"><User size={20} className={activeTab === 'profile' ? "text-emerald-100" : "text-emerald-600/70"} /> Personal Info</span>
-              {activeTab === 'profile' && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white] animate-pulse" />}
-            </button>
-            <button 
-              onClick={() => setActiveTab('preferences')}
-              className={`w-full flex items-center justify-between px-6 py-5 rounded-3xl font-bold transition-all duration-300 border backdrop-blur-xl ${
-                activeTab === 'preferences' 
-                  ? 'bg-emerald-600 border-emerald-500 text-white shadow-xl shadow-emerald-900/10 scale-[1.02]' 
-                  : 'bg-white/60 border-emerald-100/60 text-emerald-800 hover:bg-white hover:border-emerald-200 hover:shadow-md'
-              }`}
-            >
-              <span className="flex items-center gap-3"><Bell size={20} className={activeTab === 'preferences' ? "text-emerald-100" : "text-emerald-600/70"} /> Preferences</span>
-              {activeTab === 'preferences' && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white] animate-pulse" />}
-            </button>
-            <button 
-              onClick={() => setActiveTab('security')}
-              className={`w-full flex items-center justify-between px-6 py-5 rounded-3xl font-bold transition-all duration-300 border backdrop-blur-xl ${
-                activeTab === 'security' 
-                  ? 'bg-emerald-600 border-emerald-500 text-white shadow-xl shadow-emerald-900/10 scale-[1.02]' 
-                  : 'bg-white/60 border-emerald-100/60 text-emerald-800 hover:bg-white hover:border-emerald-200 hover:shadow-md'
-              }`}
-            >
-              <span className="flex items-center gap-3"><Shield size={20} className={activeTab === 'security' ? "text-emerald-100" : "text-emerald-600/70"} /> Security Settings</span>
-              {activeTab === 'security' && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white] animate-pulse" />}
-            </button>
-          </motion.div>
+              <button 
+                onClick={() => setActiveTab('profile')}
+                className={`w-full flex items-center justify-between px-6 py-5 rounded-3xl font-bold transition-all duration-300 border backdrop-blur-xl ${
+                  activeTab === 'profile' 
+                    ? 'bg-emerald-600 border-emerald-500 text-white shadow-xl shadow-emerald-900/10 scale-[1.02]' 
+                    : 'bg-white/60 border-emerald-100/60 text-emerald-800 hover:bg-white hover:border-emerald-200 hover:shadow-md'
+                }`}
+              >
+                <span className="flex items-center gap-3"><User size={20} className={activeTab === 'profile' ? "text-emerald-100" : "text-emerald-600/70"} /> Personal Info</span>
+                {activeTab === 'profile' && <div className="w-1.5 h-1.5 rounded-full bg-white shadow-[0_0_8px_white] animate-pulse" />}
+              </button>
+            </motion.div>
 
           {/* Dynamic Content Area (Glass Container) */}
           <motion.div 
@@ -246,47 +224,6 @@ export default function Settings() {
                   </motion.div>
                 )}
 
-                {activeTab === 'preferences' && (
-                  <motion.div 
-                     key="preferences"
-                     initial={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
-                     animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                     exit={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
-                     transition={{ duration: 0.3 }}
-                     className="py-16 text-center flex flex-col items-center justify-center h-full"
-                   >
-                     <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-emerald-100 to-teal-50/50 text-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
-                       <Bell size={40} className="drop-shadow-sm" />
-                     </div>
-                     <h3 className="text-3xl font-black text-emerald-950 mb-3 font-serif">Notification Preferences</h3>
-                     <p className="text-emerald-700/80 font-medium max-w-sm mx-auto">Customize how and when you receive system alerts and emails. This feature is coming soon.</p>
-                     
-                     <div className="mt-8 px-4 py-2 bg-emerald-50 rounded-full border border-emerald-100 text-emerald-600 text-sm font-bold uppercase tracking-widest pointer-events-none opacity-60">
-                       Under Construction
-                     </div>
-                   </motion.div>
-                )}
-
-                {activeTab === 'security' && (
-                  <motion.div 
-                     key="security"
-                     initial={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
-                     animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-                     exit={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
-                     transition={{ duration: 0.3 }}
-                     className="py-16 text-center flex flex-col items-center justify-center h-full"
-                   >
-                     <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-indigo-100 to-emerald-50/50 text-indigo-500 flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
-                       <Shield size={40} className="drop-shadow-sm" />
-                     </div>
-                     <h3 className="text-3xl font-black text-emerald-950 mb-3 font-serif">Security Settings</h3>
-                     <p className="text-emerald-700/80 font-medium max-w-sm mx-auto">Update your password, manage active sessions, and configure two-factor authentication.</p>
-                     
-                     <div className="mt-8 px-4 py-2 bg-indigo-50 rounded-full border border-indigo-100 text-indigo-600 text-sm font-bold uppercase tracking-widest pointer-events-none opacity-60">
-                       Under Construction
-                     </div>
-                   </motion.div>
-                )}
               </AnimatePresence>
             </div>
           </motion.div>
