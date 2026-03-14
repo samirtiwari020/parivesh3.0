@@ -19,11 +19,21 @@ export default function ReviewApplications() {
     ? stateApps
     : stateApps.filter((application) => application.clearanceType === filter);
 
-  const runAction = async (applicationId: string, action: 'APPROVE' | 'REJECT' | 'FORWARD') => {
+  const runAction = async (applicationId: string, action: 'APPROVE' | 'REJECT' | 'FORWARD' | 'SEND_BACK') => {
     const token = localStorage.getItem(AUTH_TOKEN_KEY);
     if (!token) {
       setActionError('Session expired. Please login again.');
       return;
+    }
+
+    let remarks: string | undefined;
+    if (action === 'SEND_BACK') {
+      const comment = window.prompt('Enter clarification comment for applicant:');
+      if (!comment || !comment.trim()) {
+        setActionError('Clarification comment is required.');
+        return;
+      }
+      remarks = comment.trim();
     }
 
     setActionError('');
@@ -33,7 +43,7 @@ export default function ReviewApplications() {
       await apiRequest(`/api/applications/${applicationId}/review`, {
         method: 'POST',
         token,
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, remarks }),
       });
       await refetch();
     } catch (error) {
@@ -86,6 +96,7 @@ export default function ReviewApplications() {
                       <Link to={`/state/applications/${app.id}`} className="px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">View</Link>
                       <button onClick={() => runAction(app.id, 'APPROVE')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50">Approve</button>
                       <button onClick={() => runAction(app.id, 'FORWARD')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-status-review/10 text-status-review hover:bg-status-review/20 transition-colors disabled:opacity-50">Forward</button>
+                      <button onClick={() => runAction(app.id, 'SEND_BACK')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-status-pending/10 text-status-pending hover:bg-status-pending/20 transition-colors disabled:opacity-50">Clarify</button>
                       <button onClick={() => runAction(app.id, 'REJECT')} disabled={actionLoadingId === app.id} className="px-3 py-1 text-xs font-medium rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50">Reject</button>
                     </div>
                   </td>

@@ -77,6 +77,7 @@ const App = () => (
                 <Route index element={<ApplicantDashboard />} />
                 <Route path="submit" element={<SubmitProposal />} />
                 <Route path="applications" element={<Applications />} />
+                <Route path="applications/:id" element={<ApplicationDetails />} />
                 <Route path="documents" element={<ComingSoon label="Documents" />} />
                 <Route path="notifications" element={<Notifications />} />
                 <Route path="settings" element={<Settings />} />

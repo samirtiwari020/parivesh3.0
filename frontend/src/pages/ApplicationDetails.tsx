@@ -52,7 +52,7 @@ const statusMap: Record<string, ApplicationStatus> = {
   DRAFT: 'Pending',
   SUBMITTED: 'Submitted',
   UNDER_SCRUTINY: 'Under Review',
-  EDS_RAISED: 'Under Review',
+  EDS_RAISED: 'Clarification Requested',
   RESUBMITTED: 'Under Review',
   REFERRED_TO_MEETING: 'Committee Review',
   IN_MEETING: 'Committee Review',
@@ -78,15 +78,30 @@ export default function ApplicationDetails() {
   const [loadError, setLoadError] = useState('');
   const [actionError, setActionError] = useState('');
   const [pendingAction, setPendingAction] = useState<ReviewAction | null>(null);
+  const [clarificationComment, setClarificationComment] = useState('');
+  const [applicantRemark, setApplicantRemark] = useState('');
+  const [isSavingChanges, setIsSavingChanges] = useState(false);
+  const [saveError, setSaveError] = useState('');
+  const [saveSuccess, setSaveSuccess] = useState('');
+  const [editableFields, setEditableFields] = useState({
+    projectName: '',
+    projectDescription: '',
+    state: '',
+    district: '',
+    projectCost: '',
+  });
 
   const section = useMemo(() => {
+    if (location.pathname.startsWith('/applicant')) return 'applicant';
     if (location.pathname.startsWith('/admin')) return 'admin';
     if (location.pathname.startsWith('/state')) return 'state';
     if (location.pathname.startsWith('/committee')) return 'committee';
     return 'central';
   }, [location.pathname]);
 
-  const backPath = section === 'admin'
+  const backPath = section === 'applicant'
+    ? '/applicant/applications'
+    : section === 'admin'
     ? '/admin/applications'
     : section === 'committee'
       ? '/committee'
@@ -95,7 +110,10 @@ export default function ApplicationDetails() {
       : '/central/applications';
 
   const canForward = section === 'state';
-  const canSendBack = section === 'central' || section === 'committee';
+  const canSendBack = section === 'state' || section === 'central' || section === 'committee';
+  const canReview = section === 'state' || section === 'central' || section === 'committee' || section === 'admin';
+  const isApplicantSection = section === 'applicant';
+  const canRespondToClarification = isApplicantSection && application?.status === 'EDS_RAISED';
 
   const token = localStorage.getItem(AUTH_TOKEN_KEY);
 
@@ -118,6 +136,13 @@ export default function ApplicationDetails() {
         token,
       });
       setApplication(response.application);
+      setEditableFields({
+        projectName: response.application.projectName || '',
+        projectDescription: response.application.projectDescription || '',
+        state: response.application.state || '',
+        district: response.application.district || '',
+        projectCost: response.application.projectCost ? String(response.application.projectCost) : '',
+      });
     } catch (error) {
       setApplication(null);
       setLoadError(error instanceof Error ? error.message : 'Failed to load application');
@@ -133,6 +158,11 @@ export default function ApplicationDetails() {
   const takeAction = async (action: ReviewAction) => {
     if (!id || !token) return;
 
+    if (action === 'SEND_BACK' && !clarificationComment.trim()) {
+      setActionError('Please add a clarification comment before sending back.');
+      return;
+    }
+
     setActionError('');
     setPendingAction(action);
 
@@ -140,13 +170,60 @@ export default function ApplicationDetails() {
       await apiRequest(`/api/applications/${id}/review`, {
         method: 'POST',
         token,
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({
+          action,
+          remarks: action === 'SEND_BACK' ? clarificationComment.trim() : undefined,
+        }),
       });
+      if (action === 'SEND_BACK') {
+        setClarificationComment('');
+      }
       await loadApplication();
     } catch (error) {
       setActionError(error instanceof Error ? error.message : 'Action failed');
     } finally {
       setPendingAction(null);
+    }
+  };
+
+  const handleApplicantUpdate = async () => {
+    if (!id || !token) return;
+
+    setSaveError('');
+    setSaveSuccess('');
+
+    if (!editableFields.projectName.trim()) {
+      setSaveError('Project name is required.');
+      return;
+    }
+
+    if (canRespondToClarification && !applicantRemark.trim()) {
+      setSaveError('Please describe the changes made for clarification.');
+      return;
+    }
+
+    setIsSavingChanges(true);
+    try {
+      await apiRequest(`/api/applications/${id}`, {
+        method: 'PUT',
+        token,
+        body: JSON.stringify({
+          projectName: editableFields.projectName.trim(),
+          projectDescription: editableFields.projectDescription.trim(),
+          state: editableFields.state.trim(),
+          district: editableFields.district.trim(),
+          projectCost: editableFields.projectCost ? Number(editableFields.projectCost) : undefined,
+          applicantResponseRemark: applicantRemark.trim(),
+        }),
+      });
+
+      setApplicantRemark('');
+      setSaveSuccess(canRespondToClarification ? 'Application updated and resubmitted successfully.' : 'Application updated successfully.');
+      await loadApplication();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to update application');
+    } finally {
+      setIsSavingChanges(false);
     }
   };
 
@@ -238,19 +315,72 @@ export default function ApplicationDetails() {
         <div className="grid md:grid-cols-2 gap-8">
           <div>
             <h2 className="text-lg font-semibold mb-4">Project Details</h2>
-            <div className="space-y-3">
-              {[
-                ['Clearance Type', application.clearanceType],
-                ['Sector', application.sector || '—'],
-                ['Category', application.category || '—'],
-                ['Estimated Cost', application.projectCost ? `₹${application.projectCost}` : '—'],
-              ].map(([label, value]) => (
-                <div key={label} className="flex justify-between py-2 border-b border-border last:border-0">
-                  <span className="text-sm text-muted-foreground">{label}</span>
-                  <span className="text-sm font-medium text-right">{value}</span>
+            {isApplicantSection ? (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Project Name</label>
+                  <input
+                    value={editableFields.projectName}
+                    onChange={(event) => setEditableFields((previous) => ({ ...previous, projectName: event.target.value }))}
+                    className="w-full gov-input"
+                  />
                 </div>
-              ))}
-            </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Project Description</label>
+                  <textarea
+                    value={editableFields.projectDescription}
+                    onChange={(event) => setEditableFields((previous) => ({ ...previous, projectDescription: event.target.value }))}
+                    rows={4}
+                    className="w-full gov-input"
+                  />
+                </div>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">State</label>
+                    <input
+                      value={editableFields.state}
+                      onChange={(event) => setEditableFields((previous) => ({ ...previous, state: event.target.value }))}
+                      className="w-full gov-input"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-muted-foreground mb-1">District</label>
+                    <input
+                      value={editableFields.district}
+                      onChange={(event) => setEditableFields((previous) => ({ ...previous, district: event.target.value }))}
+                      className="w-full gov-input"
+                    />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-xs text-muted-foreground mb-1">Estimated Cost (₹)</label>
+                  <input
+                    value={editableFields.projectCost}
+                    onChange={(event) => setEditableFields((previous) => ({ ...previous, projectCost: event.target.value }))}
+                    className="w-full gov-input"
+                  />
+                </div>
+                <div className="text-xs text-muted-foreground border-t border-border pt-3">
+                  <p>Clearance Type: {application.clearanceType}</p>
+                  <p>Sector: {application.sector || '—'}</p>
+                  <p>Category: {application.category || '—'}</p>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {[
+                  ['Clearance Type', application.clearanceType],
+                  ['Sector', application.sector || '—'],
+                  ['Category', application.category || '—'],
+                  ['Estimated Cost', application.projectCost ? `₹${application.projectCost}` : '—'],
+                ].map(([label, value]) => (
+                  <div key={label} className="flex justify-between py-2 border-b border-border last:border-0">
+                    <span className="text-sm text-muted-foreground">{label}</span>
+                    <span className="text-sm font-medium text-right">{value}</span>
+                  </div>
+                ))}
+              </div>
+            )}
 
             <h2 className="text-lg font-semibold mt-8 mb-4">Documents</h2>
             <div className="space-y-2">
@@ -295,44 +425,83 @@ export default function ApplicationDetails() {
           </div>
         </div>
 
-        <div className="mt-8 pt-6 border-t border-border">
-          <h3 className="text-sm font-semibold mb-3">Review Actions</h3>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => takeAction('APPROVE')}
-              disabled={pendingAction !== null}
-              className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50"
-            >
-              Approve
-            </button>
-            <button
-              onClick={() => takeAction('REJECT')}
-              disabled={pendingAction !== null}
-              className="px-3 py-1 text-xs font-medium rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50"
-            >
-              Reject
-            </button>
-            {canForward && (
-              <button
-                onClick={() => takeAction('FORWARD')}
-                disabled={pendingAction !== null}
-                className="px-3 py-1 text-xs font-medium rounded-lg bg-status-review/10 text-status-review hover:bg-status-review/20 transition-colors disabled:opacity-50"
-              >
-                Forward
-              </button>
+        {isApplicantSection ? (
+          <div className="mt-8 pt-6 border-t border-border space-y-3">
+            {canRespondToClarification && (
+              <>
+                <h3 className="text-sm font-semibold">Clarification Response</h3>
+                <p className="text-xs text-muted-foreground">Update your application fields and mention what you changed based on reviewer comments.</p>
+                <textarea
+                  value={applicantRemark}
+                  onChange={(event) => setApplicantRemark(event.target.value)}
+                  rows={3}
+                  placeholder="Describe the corrections/clarifications you have made..."
+                  className="w-full gov-input"
+                />
+              </>
             )}
-            {canSendBack && (
-              <button
-                onClick={() => takeAction('SEND_BACK')}
-                disabled={pendingAction !== null}
-                className="px-3 py-1 text-xs font-medium rounded-lg bg-status-pending/10 text-status-pending hover:bg-status-pending/20 transition-colors disabled:opacity-50"
-              >
-                Send Back
-              </button>
-            )}
+            <button
+              onClick={handleApplicantUpdate}
+              disabled={isSavingChanges}
+              className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+            >
+              {isSavingChanges ? 'Saving...' : canRespondToClarification ? 'Save Changes & Resubmit' : 'Save Changes'}
+            </button>
+            {saveError && <p className="text-xs text-destructive">{saveError}</p>}
+            {saveSuccess && <p className="text-xs text-accent">{saveSuccess}</p>}
           </div>
-          {actionError && <p className="text-xs text-destructive mt-3">{actionError}</p>}
-        </div>
+        ) : canReview ? (
+          <div className="mt-8 pt-6 border-t border-border">
+            <h3 className="text-sm font-semibold mb-3">Review Actions</h3>
+            {canSendBack && (
+              <div className="mb-3">
+                <label className="block text-xs text-muted-foreground mb-1">Clarification Comment (required for Send Back)</label>
+                <textarea
+                  value={clarificationComment}
+                  onChange={(event) => setClarificationComment(event.target.value)}
+                  rows={3}
+                  placeholder="Describe what needs correction in this application..."
+                  className="w-full gov-input"
+                />
+              </div>
+            )}
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => takeAction('APPROVE')}
+                disabled={pendingAction !== null}
+                className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors disabled:opacity-50"
+              >
+                Approve
+              </button>
+              <button
+                onClick={() => takeAction('REJECT')}
+                disabled={pendingAction !== null}
+                className="px-3 py-1 text-xs font-medium rounded-lg bg-destructive/10 text-destructive hover:bg-destructive/20 transition-colors disabled:opacity-50"
+              >
+                Reject
+              </button>
+              {canForward && (
+                <button
+                  onClick={() => takeAction('FORWARD')}
+                  disabled={pendingAction !== null}
+                  className="px-3 py-1 text-xs font-medium rounded-lg bg-status-review/10 text-status-review hover:bg-status-review/20 transition-colors disabled:opacity-50"
+                >
+                  Forward
+                </button>
+              )}
+              {canSendBack && (
+                <button
+                  onClick={() => takeAction('SEND_BACK')}
+                  disabled={pendingAction !== null}
+                  className="px-3 py-1 text-xs font-medium rounded-lg bg-status-pending/10 text-status-pending hover:bg-status-pending/20 transition-colors disabled:opacity-50"
+                >
+                  Send Back
+                </button>
+              )}
+            </div>
+            {actionError && <p className="text-xs text-destructive mt-3">{actionError}</p>}
+          </div>
+        ) : null}
       </div>
     </div>
   );

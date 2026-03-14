@@ -135,7 +135,37 @@ exports.updateApplication = async (req, res) => {
     }
 
     const previousStatus = application.status;
-    Object.assign(application, req.body);
+
+    if (isApplicant(req.user)) {
+      const allowedApplicantFields = [
+        "projectName",
+        "projectDescription",
+        "sector",
+        "category",
+        "clearanceType",
+        "state",
+        "district",
+        "projectCost",
+        "coordinates",
+      ];
+
+      for (const field of allowedApplicantFields) {
+        if (Object.prototype.hasOwnProperty.call(req.body, field)) {
+          application[field] = req.body[field];
+        }
+      }
+
+      if (application.status === "EDS_RAISED") {
+        application.status = "RESUBMITTED";
+        application.history.push({
+          status: "RESUBMITTED",
+          updatedBy: req.user._id,
+          remarks: req.body.applicantResponseRemark || "Application resubmitted after clarification",
+        });
+      }
+    } else {
+      Object.assign(application, req.body);
+    }
 
     if (req.body.status && req.body.status !== previousStatus) {
       application.history.push({
@@ -269,6 +299,7 @@ const roleActionStatusMap = {
     APPROVE: "APPROVED",
     REJECT: "REJECTED",
     FORWARD: "REFERRED_TO_MEETING",
+    SEND_BACK: "EDS_RAISED",
   },
   CENTRAL_REVIEWER: {
     APPROVE: "REFERRED_TO_MEETING",
@@ -286,6 +317,13 @@ exports.reviewApplication = async (req, res) => {
   try {
     const { action, remarks } = req.body;
     const status = roleActionStatusMap[req.user.role]?.[action];
+
+    if (action === "SEND_BACK" && (!remarks || !String(remarks).trim())) {
+      return res.status(400).json({
+        success: false,
+        message: "Clarification comment is required",
+      });
+    }
 
     if (!status) {
       return res.status(400).json({

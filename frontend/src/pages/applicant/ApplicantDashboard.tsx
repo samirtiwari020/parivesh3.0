@@ -113,7 +113,7 @@ export default function ApplicantDashboard() {
                     className="hover:bg-white/60 transition-colors group cursor-pointer"
                   >
                     <td className="px-6 py-5 font-bold tabular-data">
-                      <Link to={`/applicant/applications`} className="text-emerald-700 hover:text-emerald-900 group-hover:underline underline-offset-4">{app.id}</Link>
+                      <Link to={`/applicant/applications/${app.id}`} className="text-emerald-700 hover:text-emerald-900 group-hover:underline underline-offset-4">{app.id}</Link>
                     </td>
                     <td className="px-6 py-5 hidden sm:table-cell font-semibold text-emerald-950">{app.projectName}</td>
                     <td className="px-6 py-5 hidden md:table-cell text-emerald-800/80 font-medium">{app.clearanceType}</td>
