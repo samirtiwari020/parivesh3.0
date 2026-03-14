@@ -1,12 +1,13 @@
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 import { FileText, Clock, CheckCircle2, XCircle, Plus, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import StatCard from '@/components/dashboard/StatCard';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 import { useAuth } from '@/contexts/AuthContext';
 import { useApplicantApplications } from '@/hooks/useApplicantApplications';
+import WhatIfSimulator from '@/components/dashboard/WhatIfSimulator';
 
-const containerVariants = {
+const containerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -16,9 +17,9 @@ const containerVariants = {
   }
 };
 
-const itemVariants = {
+const itemVariants: Variants = {
   hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" } }
+  visible: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 300, damping: 24 } }
 };
 
 export default function ApplicantDashboard() {
@@ -126,6 +127,11 @@ export default function ApplicantDashboard() {
               </tbody>
             </table>
           </div>
+        </motion.div>
+
+        {/* What-If Simulator Section */}
+        <motion.div variants={itemVariants} className="pt-4 pb-8">
+          <WhatIfSimulator />
         </motion.div>
       </motion.div>
     </div>
