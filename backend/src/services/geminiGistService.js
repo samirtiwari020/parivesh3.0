@@ -94,6 +94,47 @@ Provide a short neutral recommendation for committee discussion.
 Keep the GIST clear, professional, and suitable for use in an official environmental clearance meeting document.`;
 };
 
+const buildMoMPrompt = ({
+  projectTitle,
+  category,
+  location,
+  gistText,
+}) => {
+  return `You are drafting an official Minute of Meeting (MoM) for an environmental clearance committee.
+
+Use the edited GIST and convert it into a well-structured, formal, government-style MoM document.
+
+Instructions:
+1. Preserve facts from the provided GIST. Do not invent unsupported facts.
+2. Use a formal committee minute tone and precise language.
+3. Include clear headings and concise paragraphs.
+4. Include a section for deliberations, observations, and final decision.
+5. Include specific compliance/safeguard directions where relevant.
+6. If information is unavailable, write "Not Mentioned".
+7. Return plain text only, no markdown code blocks.
+
+Project Information:
+Project Title: ${projectTitle || "Not Mentioned"}
+Category: ${category || "Not Mentioned"}
+Location: ${location || "Not Mentioned"}
+
+Edited GIST Content:
+${gistText || "Not Mentioned"}
+
+Return output in this format:
+
+MINUTE OF MEETING (MoM)
+1. Meeting Context
+2. Project Particulars
+3. Summary of Deliberations
+4. Environmental and Compliance Observations
+5. Committee Decision
+6. Conditions / Safeguards
+7. Follow-up Actions
+
+Keep the result publication-ready for official records.`;
+};
+
 const parseGeminiText = (payload) => {
   const candidates = payload?.candidates;
 
@@ -207,8 +248,23 @@ const generateGistFromGemini = async (prompt) => {
   };
 };
 
+const generateMoMFromGemini = async (prompt) => {
+  const result = await generateGeminiText({
+    parts: [{ text: prompt }],
+    maxOutputTokens: 4000,
+    temperature: 0.2,
+  });
+
+  return {
+    momText: result.text,
+    model: result.model,
+  };
+};
+
 module.exports = {
   buildGistPrompt,
+  buildMoMPrompt,
   extractTextWithGeminiOcr,
   generateGistFromGemini,
+  generateMoMFromGemini,
 };

@@ -7,7 +7,7 @@ const momSchema = new mongoose.Schema(
     meeting: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Meeting",
-      required: true,
+      required: false,
     },
 
     preparedBy: {
@@ -55,6 +55,11 @@ const momSchema = new mongoose.Schema(
 
     remarks: {
       type: String,
+    },
+
+    content: {
+      type: String,
+      trim: true,
     },
   },
   {

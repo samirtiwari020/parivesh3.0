@@ -135,6 +135,13 @@ exports.updateApplication = async (req, res) => {
       });
     }
 
+    if (application.isLocked) {
+      return res.status(423).json({
+        success: false,
+        message: "Application is locked after final MoM publication",
+      });
+    }
+
     const previousStatus = application.status;
 
     if (isApplicant(req.user)) {
@@ -339,6 +346,13 @@ exports.reviewApplication = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Application not found",
+      });
+    }
+
+    if (application.isLocked) {
+      return res.status(423).json({
+        success: false,
+        message: "Application is locked after final MoM publication",
       });
     }
 
