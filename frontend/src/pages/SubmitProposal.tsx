@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowLeft, ArrowRight, Check, Send, FileText, CreditCard, ShieldCheck, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FileUploader from '@/components/forms/FileUploader';
+import GoogleMapComponent from '@/components/maps/GoogleMapComponent';
 import { indianStates, sectors } from '@/data/mockData';
 import { API_BASE_URL, apiRequest } from '@/lib/api';
 import { PROJECT_CATEGORIES, CHECKLIST_REQUIREMENTS, AFFIDAVIT_POINTS } from '@/data/projectChecklists';
@@ -75,7 +76,7 @@ export default function SubmitProposal() {
   const [documents, setDocuments] = useState<Record<string, File[]>>({});
   const [affidavitAccepted, setAffidavitAccepted] = useState(false);
   const [submitError, setSubmitError] = useState('');
-  
+
   // New States
   const [createdApplicationId, setCreatedApplicationId] = useState<string | null>(null);
   const [paymentProcessed, setPaymentProcessed] = useState(false);
@@ -85,7 +86,7 @@ export default function SubmitProposal() {
   const [paymentGatewayStatus, setPaymentGatewayStatus] = useState<'IDLE' | 'PROCESSING' | 'SUCCESS' | 'FAILED'>('IDLE');
   const [currentPaymentData, setCurrentPaymentData] = useState<Record<string, unknown> | null>(null);
   const [transactionId, setTransactionId] = useState('');
-  
+
   const navigate = useNavigate();
 
   const step1Form = useForm({ resolver: zodResolver(step1Schema), defaultValues: formData });
@@ -105,7 +106,7 @@ export default function SubmitProposal() {
     } else if (currentStep === 3) {
       const currentChecklist = CHECKLIST_REQUIREMENTS[formData.sector as string] || [];
       const missingDocs = currentChecklist.filter(docLabel => !documents[docLabel] || documents[docLabel].length === 0);
-      
+
       if (missingDocs.length > 0) {
         setSubmitError(`Please upload all required documents: ${missingDocs.join(', ')}`);
         return;
@@ -132,7 +133,7 @@ export default function SubmitProposal() {
       if (!appId) {
         const clearanceLabel = selectedClearances[0];
         const clearanceType = clearanceTypeMap[clearanceLabel];
-        
+
         const payload = {
           projectName: formData.projectName,
           sector: formData.sector,
@@ -158,7 +159,7 @@ export default function SubmitProposal() {
         setCreatedApplicationId(appId);
 
         // 2. Upload Documents concurrently
-        const uploadTasks = Object.entries(documents).flatMap(([docType, files]) => 
+        const uploadTasks = Object.entries(documents).flatMap(([docType, files]) =>
           files.map((file) => uploadDocument(file, docType, appId as string, token))
         );
         await Promise.all(uploadTasks);
@@ -195,10 +196,10 @@ export default function SubmitProposal() {
     }
 
     setPaymentGatewayStatus('PROCESSING');
-    
+
     try {
       const token = localStorage.getItem(AUTH_TOKEN_KEY);
-      
+
       // Simulate real gateway processing time
       await new Promise(resolve => setTimeout(resolve, 2500));
 
@@ -213,7 +214,7 @@ export default function SubmitProposal() {
       });
 
       setPaymentGatewayStatus('SUCCESS');
-      
+
       setTimeout(() => {
         setShowPaymentModal(false);
         setPaymentProcessed(true);
@@ -266,9 +267,9 @@ export default function SubmitProposal() {
 
   return (
     <div className="min-h-[calc(100vh-4rem)] relative bg-stone-50/50 flex flex-col font-sans -mx-4 sm:-mx-6 lg:-mx-8 px-4 sm:px-6 lg:px-8 py-8 lg:py-12 overflow-hidden items-center justify-center">
-      
+
       {/* Background with Blend Mode */}
-      <div 
+      <div
         className="absolute inset-0 z-0 opacity-[0.35] pointer-events-none mix-blend-multiply"
         style={{
           backgroundImage: 'url("https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=1920&q=80")',
@@ -279,12 +280,12 @@ export default function SubmitProposal() {
       />
       <div className="absolute inset-0 bg-gradient-to-b from-white/90 via-stone-50/70 to-emerald-50/80 pointer-events-none z-0" />
       <div className="absolute inset-0 bg-gradient-to-r from-white/60 to-transparent pointer-events-none z-0" />
-      
+
       {/* Container */}
       <div className="w-full max-w-4xl relative z-10 w-full">
-        
+
         {/* Dynamic Header */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           className="text-center mb-10"
@@ -299,7 +300,7 @@ export default function SubmitProposal() {
         </motion.div>
 
         {/* Progress Tracker (Glassmorphic) */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
@@ -308,10 +309,10 @@ export default function SubmitProposal() {
           <div className="flex items-center justify-between mb-6 relative px-4">
             {/* Background line for progress */}
             <div className="absolute left-8 right-8 top-1/2 -translate-y-1/2 h-1 bg-emerald-900/10 rounded-full z-0" />
-            
+
             {/* Active progress line */}
-            <div 
-              className="absolute left-8 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full z-0 transition-all duration-500 ease-out" 
+            <div
+              className="absolute left-8 top-1/2 -translate-y-1/2 h-1 bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full z-0 transition-all duration-500 ease-out"
               style={{ width: `calc(${(currentStep / (steps.length - 1)) * 100}% - 2rem)` }}
             />
 
@@ -320,9 +321,9 @@ export default function SubmitProposal() {
               const isCompleted = i < currentStep;
               return (
                 <div key={i} className="flex flex-col items-center relative z-10">
-                  <motion.div 
+                  <motion.div
                     initial={false}
-                    animate={{ 
+                    animate={{
                       scale: isActive ? 1.2 : 1,
                       backgroundColor: isCompleted ? '#10b981' : isActive ? '#059669' : '#ffffff',
                       borderColor: isCompleted || isActive ? '#059669' : '#e5e7eb',
@@ -333,9 +334,8 @@ export default function SubmitProposal() {
                     {isCompleted ? <Check size={18} strokeWidth={3} /> : i + 1}
                   </motion.div>
                   {/* Step Label (Hidden on small screens unless active) */}
-                  <span className={`absolute -bottom-7 text-[10px] sm:text-xs font-bold whitespace-nowrap transition-colors duration-300 ${
-                    isActive ? 'text-emerald-800' : isCompleted ? 'text-emerald-600/70 hidden sm:block' : 'text-emerald-900/40 hidden sm:block'
-                  }`}>
+                  <span className={`absolute -bottom-7 text-[10px] sm:text-xs font-bold whitespace-nowrap transition-colors duration-300 ${isActive ? 'text-emerald-800' : isCompleted ? 'text-emerald-600/70 hidden sm:block' : 'text-emerald-900/40 hidden sm:block'
+                    }`}>
                     {step}
                   </span>
                 </div>
@@ -345,7 +345,7 @@ export default function SubmitProposal() {
         </motion.div>
 
         {/* Main Form Card (Glassmorphism) */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
@@ -365,18 +365,18 @@ export default function SubmitProposal() {
                     <h3 className="text-2xl font-bold text-emerald-950 mb-6">Project Details</h3>
                     <div>
                       <label className="block text-sm font-bold text-emerald-900/70 mb-2">Project Name</label>
-                      <input 
-                        {...step1Form.register('projectName')} 
-                        className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm placeholder:text-emerald-900/30 font-medium" 
-                        placeholder="e.g. Highway Expansion NH-44" 
+                      <input
+                        {...step1Form.register('projectName')}
+                        className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm placeholder:text-emerald-900/30 font-medium"
+                        placeholder="e.g. Highway Expansion NH-44"
                       />
                       {step1Form.formState.errors.projectName && <p className="text-xs text-rose-500 font-medium mt-1.5 ml-1">{step1Form.formState.errors.projectName.message as string}</p>}
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-bold text-emerald-900/70 mb-2">Sector</label>
-                        <select 
-                          {...step1Form.register('sector')} 
+                        <select
+                          {...step1Form.register('sector')}
                           className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm font-medium"
                         >
                           <option value="">Select Sector</option>
@@ -386,8 +386,8 @@ export default function SubmitProposal() {
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-emerald-900/70 mb-2">Category</label>
-                        <select 
-                          {...step1Form.register('category')} 
+                        <select
+                          {...step1Form.register('category')}
                           className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm font-medium"
                         >
                           <option value="">Select Category</option>
@@ -400,10 +400,10 @@ export default function SubmitProposal() {
                     </div>
                     <div>
                       <label className="block text-sm font-bold text-emerald-900/70 mb-2">Estimated Cost (₹ in Crores)</label>
-                      <input 
-                        {...step1Form.register('estimatedCost')} 
-                        className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm placeholder:text-emerald-900/30 font-medium" 
-                        placeholder="e.g. 1200" 
+                      <input
+                        {...step1Form.register('estimatedCost')}
+                        className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm placeholder:text-emerald-900/30 font-medium"
+                        placeholder="e.g. 1200"
                       />
                       {step1Form.formState.errors.estimatedCost && <p className="text-xs text-rose-500 font-medium mt-1.5 ml-1">{step1Form.formState.errors.estimatedCost.message as string}</p>}
                     </div>
@@ -416,8 +416,8 @@ export default function SubmitProposal() {
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                       <div>
                         <label className="block text-sm font-bold text-emerald-900/70 mb-2">State</label>
-                        <select 
-                          {...step2Form.register('state')} 
+                        <select
+                          {...step2Form.register('state')}
                           className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm font-medium"
                         >
                           <option value="">Select State</option>
@@ -427,33 +427,57 @@ export default function SubmitProposal() {
                       </div>
                       <div>
                         <label className="block text-sm font-bold text-emerald-900/70 mb-2">District</label>
-                        <input 
-                          {...step2Form.register('district')} 
-                          className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm placeholder:text-emerald-900/30 font-medium" 
-                          placeholder="e.g. Pune" 
+                        <input
+                          {...step2Form.register('district')}
+                          className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm placeholder:text-emerald-900/30 font-medium"
+                          placeholder="e.g. Pune"
                         />
                         {step2Form.formState.errors.district && <p className="text-xs text-rose-500 font-medium mt-1.5 ml-1">{step2Form.formState.errors.district.message as string}</p>}
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 overflow-hidden rounded-xl border border-emerald-100 bg-white/50 p-6">
-                      <div>
-                         <label className="block text-sm font-bold text-emerald-900/70 mb-2">Latitude</label>
-                        <input 
-                          {...step2Form.register('latitude')} 
-                          className="w-full bg-white/80 border border-emerald-100/50 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm placeholder:text-emerald-900/30 font-medium" 
-                          placeholder="e.g. 18.5204" 
-                        />
-                        {step2Form.formState.errors.latitude && <p className="text-xs text-rose-500 font-medium mt-1.5 ml-1">{step2Form.formState.errors.latitude.message as string}</p>}
+                    <div className="bg-white/50 border border-emerald-100 rounded-xl p-4 sm:p-6 shadow-sm">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                        <div>
+                          <label className="block text-sm font-bold text-emerald-900/70">Project Location Map <span className="text-emerald-500/50 text-xs italic ml-2">(Preview)</span></label>
+                          <p className="text-xs text-emerald-800/60 mt-1">This map will eventually allow you to drop a pin at your exact project site.</p>
+                        </div>
+                        
+                        {(step2Form.watch('latitude') && step2Form.watch('longitude')) && !isNaN(Number(step2Form.watch('latitude'))) && !isNaN(Number(step2Form.watch('longitude'))) && (
+                          <div className="bg-emerald-50 px-4 py-2 rounded-lg border border-emerald-200 flex items-center gap-3">
+                            <div className="flex flex-col">
+                              <span className="text-[10px] text-emerald-600 font-bold uppercase tracking-wider">Coordinates Captured</span>
+                              <span className="text-sm font-mono font-medium text-emerald-900">
+                                {Number(step2Form.watch('latitude')).toFixed(4)}, {Number(step2Form.watch('longitude')).toFixed(4)}
+                              </span>
+                            </div>
+                            <Check className="text-emerald-500" size={18} strokeWidth={3} />
+                          </div>
+                        )}
                       </div>
-                      <div>
-                        <label className="block text-sm font-bold text-emerald-900/70 mb-2">Longitude</label>
-                        <input 
-                          {...step2Form.register('longitude')} 
-                          className="w-full bg-white/80 border border-emerald-100/50 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm placeholder:text-emerald-900/30 font-medium" 
-                          placeholder="e.g. 73.8567" 
-                        />
-                        {step2Form.formState.errors.longitude && <p className="text-xs text-rose-500 font-medium mt-1.5 ml-1">{step2Form.formState.errors.longitude.message as string}</p>}
-                      </div>
+
+                      <GoogleMapComponent 
+                        className="w-full h-[400px] border border-emerald-200 rounded-xl shadow-inner overflow-hidden" 
+                        initialPosition={
+                          step2Form.watch('latitude') && step2Form.watch('longitude') && !isNaN(Number(step2Form.watch('latitude'))) && !isNaN(Number(step2Form.watch('longitude')))
+                            ? { lat: Number(step2Form.watch('latitude')), lng: Number(step2Form.watch('longitude')) }
+                            : null
+                        }
+                        onLocationSelect={(lat, lng) => {
+                          step2Form.setValue('latitude', String(lat), { shouldValidate: true });
+                          step2Form.setValue('longitude', String(lng), { shouldValidate: true });
+                        }}
+                      />
+                      
+                      {/* Hidden inputs to maintain form validation tracking temporarily */}
+                      <input type="hidden" {...step2Form.register('latitude')} />
+                      <input type="hidden" {...step2Form.register('longitude')} />
+                      
+                      {(step2Form.formState.errors.latitude || step2Form.formState.errors.longitude) && (
+                        <p className="text-sm text-rose-500 font-bold mt-3 max-w-md bg-rose-50 p-2 rounded border border-rose-100 flex items-center gap-2">
+                          <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+                          Please select a location on the map.
+                        </p>
+                      )}
                     </div>
                   </div>
                 )}
@@ -462,32 +486,30 @@ export default function SubmitProposal() {
                   <div className="space-y-6">
                     <h3 className="text-2xl font-bold text-emerald-950 mb-2">Clearance Requirements</h3>
                     <p className="text-emerald-800/60 font-medium mb-6">Select all regulatory clearances applicable to your project:</p>
-                    
+
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       {['Environmental Clearance', 'Forest Clearance', 'Wildlife Clearance', 'CRZ Clearance'].map(type => (
-                        <label key={type} className={`relative flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
-                          selectedClearances.includes(type) 
-                            ? 'border-emerald-500 bg-emerald-50/80 shadow-md shadow-emerald-500/10' 
-                            : 'border-emerald-100 bg-white/50 hover:border-emerald-300 hover:bg-white/80'
-                        }`}>
-                          <div className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${
-                             selectedClearances.includes(type) ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-emerald-200 bg-transparent'
+                        <label key={type} className={`relative flex items-center gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${selectedClearances.includes(type)
+                          ? 'border-emerald-500 bg-emerald-50/80 shadow-md shadow-emerald-500/10'
+                          : 'border-emerald-100 bg-white/50 hover:border-emerald-300 hover:bg-white/80'
                           }`}>
+                          <div className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 transition-colors ${selectedClearances.includes(type) ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-emerald-200 bg-transparent'
+                            }`}>
                             {selectedClearances.includes(type) && <Check size={14} strokeWidth={3} />}
                           </div>
-                          
-                          <input 
-                            type="checkbox" 
-                            checked={selectedClearances.includes(type)} 
-                            onChange={() => toggleClearance(type)} 
-                            className="hidden" 
+
+                          <input
+                            type="checkbox"
+                            checked={selectedClearances.includes(type)}
+                            onChange={() => toggleClearance(type)}
+                            className="hidden"
                           />
                           <span className={`font-bold ${selectedClearances.includes(type) ? 'text-emerald-900' : 'text-emerald-950/70'}`}>{type}</span>
                         </label>
                       ))}
                     </div>
                     {selectedClearances.length === 0 && (
-                      <motion.p initial={{opacity: 0}} animate={{opacity: 1}} className="text-sm text-rose-500 font-bold bg-rose-50 p-3 rounded-lg border border-rose-100 flex items-center gap-2">
+                      <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-rose-500 font-bold bg-rose-50 p-3 rounded-lg border border-rose-100 flex items-center gap-2">
                         <span className="w-2 h-2 rounded-full bg-rose-500" />
                         Please select at least one clearance type to proceed.
                       </motion.p>
@@ -499,14 +521,14 @@ export default function SubmitProposal() {
                   <div className="space-y-6">
                     <h3 className="text-2xl font-bold text-emerald-950 mb-2">Upload Documents</h3>
                     <p className="text-emerald-800/60 font-medium mb-6">Provide the mandatory documentation supporting your <span className="font-bold text-emerald-900">{formData.sector as string}</span> application.</p>
-                    
+
                     {submitError && (
                       <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-semibold">
                         {submitError}
                       </div>
                     )}
 
-                    <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-3 rounded-2xl p-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#10b981 transparent'}}>
+                    <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-3 rounded-2xl p-1" style={{ scrollbarWidth: 'thin', scrollbarColor: '#10b981 transparent' }}>
                       {CHECKLIST_REQUIREMENTS[formData.sector as string] ? (
                         CHECKLIST_REQUIREMENTS[formData.sector as string].map((docLabel) => (
                           <div key={docLabel} className={`p-4 bg-white/50 rounded-2xl border transition-shadow hover:shadow-md ${(!documents[docLabel] || documents[docLabel].length === 0) ? 'border-emerald-100' : 'border-emerald-400 bg-emerald-50/50'}`}>
@@ -514,10 +536,10 @@ export default function SubmitProposal() {
                               <span className="font-semibold text-emerald-900 line-clamp-1">{docLabel} <span className="text-red-500 font-black">*</span></span>
                               {documents[docLabel] && documents[docLabel].length > 0 && <span className="text-xs bg-emerald-500 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">Uploaded</span>}
                             </div>
-                            <FileUploader 
+                            <FileUploader
                               label={`Upload`}
-                              accept=".pdf,.jpg,.png" 
-                              onFilesChange={(files) => setDocuments(prev => ({...prev, [docLabel]: files}))} 
+                              accept=".pdf,.jpg,.png"
+                              onFilesChange={(files) => setDocuments(prev => ({ ...prev, [docLabel]: files }))}
                             />
                           </div>
                         ))
@@ -531,20 +553,20 @@ export default function SubmitProposal() {
                 {currentStep === 4 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 mb-6">
-                       <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
-                         <ShieldCheck size={24} />
-                       </div>
-                       <div>
-                         <h3 className="text-2xl font-bold text-emerald-950">Declaration Affidavit</h3>
-                         <p className="text-emerald-800/60 font-medium">Please read and strictly abide by these conditions.</p>
-                       </div>
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
+                        <ShieldCheck size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-emerald-950">Declaration Affidavit</h3>
+                        <p className="text-emerald-800/60 font-medium">Please read and strictly abide by these conditions.</p>
+                      </div>
                     </div>
-                    
-                    <div className="bg-white/80 p-6 rounded-2xl border border-emerald-200 shadow-inner overflow-y-auto max-h-[40vh] space-y-4 text-sm font-medium text-emerald-900/80 leading-relaxed custom-scrollbar" style={{scrollbarWidth: 'thin', scrollbarColor: '#10b981 transparent'}}>
+
+                    <div className="bg-white/80 p-6 rounded-2xl border border-emerald-200 shadow-inner overflow-y-auto max-h-[40vh] space-y-4 text-sm font-medium text-emerald-900/80 leading-relaxed custom-scrollbar" style={{ scrollbarWidth: 'thin', scrollbarColor: '#10b981 transparent' }}>
                       {AFFIDAVIT_POINTS[formData.sector as string] ? (
                         <ul className="list-decimal pl-5 space-y-3">
                           {AFFIDAVIT_POINTS[formData.sector as string].map((point, idx) => (
-                             <li key={idx} className="pl-2">{point}</li>
+                            <li key={idx} className="pl-2">{point}</li>
                           ))}
                         </ul>
                       ) : (
@@ -553,20 +575,19 @@ export default function SubmitProposal() {
                     </div>
 
                     <label className={`flex items-start gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${affidavitAccepted ? 'border-emerald-500 bg-emerald-50/80 shadow-md shadow-emerald-500/10' : 'border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50'}`}>
-                        <div className={`w-6 h-6 rounded border-2 flex shrink-0 items-center justify-center mt-0.5 transition-colors ${
-                             affidavitAccepted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-emerald-300 bg-white'
-                          }`}>
-                            {affidavitAccepted && <Check size={14} strokeWidth={3} />}
-                        </div>
-                        <input 
-                            type="checkbox" 
-                            checked={affidavitAccepted} 
-                            onChange={(e) => setAffidavitAccepted(e.target.checked)} 
-                            className="hidden" 
-                        />
-                        <span className={`font-bold leading-tight ${affidavitAccepted ? 'text-emerald-900' : 'text-emerald-950/70'}`}>
-                            I solemnly affirm and declare that I have read, understood, and accept all the above conditions and regulations. I understand that any violation may result in immediate revocation of clearances and legal action.
-                        </span>
+                      <div className={`w-6 h-6 rounded border-2 flex shrink-0 items-center justify-center mt-0.5 transition-colors ${affidavitAccepted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-emerald-300 bg-white'
+                        }`}>
+                        {affidavitAccepted && <Check size={14} strokeWidth={3} />}
+                      </div>
+                      <input
+                        type="checkbox"
+                        checked={affidavitAccepted}
+                        onChange={(e) => setAffidavitAccepted(e.target.checked)}
+                        className="hidden"
+                      />
+                      <span className={`font-bold leading-tight ${affidavitAccepted ? 'text-emerald-900' : 'text-emerald-950/70'}`}>
+                        I solemnly affirm and declare that I have read, understood, and accept all the above conditions and regulations. I understand that any violation may result in immediate revocation of clearances and legal action.
+                      </span>
                     </label>
                   </div>
                 )}
@@ -574,29 +595,28 @@ export default function SubmitProposal() {
                 {currentStep === 5 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 mb-8">
-                       <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
-                         <CreditCard size={24} />
-                       </div>
-                       <div>
-                         <h3 className="text-2xl font-bold text-emerald-950">Application Fee</h3>
-                         <p className="text-emerald-800/60 font-medium">Complete payment to proceed to final submission.</p>
-                       </div>
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
+                        <CreditCard size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-emerald-950">Application Fee</h3>
+                        <p className="text-emerald-800/60 font-medium">Complete payment to proceed to final submission.</p>
+                      </div>
                     </div>
-                    
+
                     <div className="bg-white/60 rounded-2xl border border-emerald-100 p-8 text-center relative overflow-hidden">
                       <ShieldCheck className="absolute -bottom-10 -left-10 w-48 h-48 text-emerald-900/[0.03] rotate-12 pointer-events-none" />
                       <div className="relative z-10 space-y-6">
                         <div className="text-5xl font-black text-emerald-950 mb-2">₹5,000</div>
                         <p className="text-emerald-800/60 font-medium">Standard Application Processing Fee</p>
-                        
+
                         <button
                           onClick={handlePaymentInitiation}
                           disabled={isProcessingPayment}
-                          className={`w-full max-w-sm mx-auto flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all ${
-                            isProcessingPayment 
-                              ? 'bg-emerald-400 text-white cursor-wait opacity-80' 
-                              : 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:-translate-y-0.5'
-                          }`}
+                          className={`w-full max-w-sm mx-auto flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all ${isProcessingPayment
+                            ? 'bg-emerald-400 text-white cursor-wait opacity-80'
+                            : 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:-translate-y-0.5'
+                            }`}
                         >
                           {isProcessingPayment ? (
                             <><Loader2 className="animate-spin" size={24} /> Processing Secure Payment...</>
@@ -612,19 +632,19 @@ export default function SubmitProposal() {
                 {currentStep === 6 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 mb-8">
-                       <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
-                         <FileText size={24} />
-                       </div>
-                       <div>
-                         <h3 className="text-2xl font-bold text-emerald-950">Review Submission</h3>
-                         <p className="text-emerald-800/60 font-medium">Verify your details before final submission.</p>
-                       </div>
+                      <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
+                        <FileText size={24} />
+                      </div>
+                      <div>
+                        <h3 className="text-2xl font-bold text-emerald-950">Review Submission</h3>
+                        <p className="text-emerald-800/60 font-medium">Verify your details before final submission.</p>
+                      </div>
                     </div>
-                    
+
                     <div className="bg-white/60 rounded-2xl border border-emerald-100 p-6 overflow-hidden relative">
                       {/* Decorative watermark */}
                       <Check className="absolute -bottom-10 -right-10 w-48 h-48 text-emerald-900/[0.03] rotate-12 pointer-events-none" />
-                      
+
                       <div className="space-y-4 relative z-10">
                         {(() => {
                           const totalUploadedFiles = Object.values(documents).flat().length;
@@ -660,53 +680,51 @@ export default function SubmitProposal() {
 
           {/* Footer Navigation */}
           <div className="bg-emerald-50/50 px-8 py-6 border-t border-emerald-100/60 flex items-center justify-between mt-auto">
-            <button 
-              onClick={prevStep} 
-              disabled={currentStep === 0 || currentStep === 6 || isProcessingPayment || paymentProcessed} 
-              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
-                (currentStep === 0 || currentStep === 6 || isProcessingPayment || paymentProcessed)
-                  ? 'opacity-0 pointer-events-none' 
-                  : 'bg-white text-emerald-700 hover:bg-emerald-50 hover:shadow-md border border-emerald-200 hover:-translate-y-0.5'
-              }`}
+            <button
+              onClick={prevStep}
+              disabled={currentStep === 0 || currentStep === 6 || isProcessingPayment || paymentProcessed}
+              className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${(currentStep === 0 || currentStep === 6 || isProcessingPayment || paymentProcessed)
+                ? 'opacity-0 pointer-events-none'
+                : 'bg-white text-emerald-700 hover:bg-emerald-50 hover:shadow-md border border-emerald-200 hover:-translate-y-0.5'
+                }`}
             >
               <ArrowLeft size={18} /> Back
             </button>
-            
+
             {currentStep === 5 ? (
               <div className="ml-auto text-sm text-emerald-600/60 font-medium flex items-center gap-2">
                 <ShieldCheck size={16} /> Secure checkout process
               </div>
             ) : currentStep < steps.length - 1 ? (
-              <button 
-                onClick={nextStep} 
+              <button
+                onClick={nextStep}
                 className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all ml-auto"
               >
                 Continue <ArrowRight size={18} />
               </button>
             ) : (
-              <button 
-                onClick={handleSubmit} 
-                disabled={isSubmitting} 
-                className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold shadow-lg transition-all ml-auto ${
-                  isSubmitting 
-                    ? 'bg-emerald-400 text-white cursor-wait opacity-80' 
-                    : 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:-translate-y-0.5'
-                }`}
+              <button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className={`flex items-center gap-2 px-8 py-3 rounded-xl font-bold shadow-lg transition-all ml-auto ${isSubmitting
+                  ? 'bg-emerald-400 text-white cursor-wait opacity-80'
+                  : 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:-translate-y-0.5'
+                  }`}
               >
                 {isSubmitting ? (
-                   <>Processing...</>
-                 ) : (
-                   <>
-                     Submit Application <Send size={18} />
-                   </>
-                 )}
+                  <>Processing...</>
+                ) : (
+                  <>
+                    Submit Application <Send size={18} />
+                  </>
+                )}
               </button>
             )}
           </div>
         </motion.div>
 
         {submitError && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
             className="mt-6 bg-rose-50/90 backdrop-blur-sm border border-rose-200 text-rose-600 px-6 py-4 rounded-xl text-center font-semibold shadow-sm"
           >
@@ -735,7 +753,7 @@ export default function SubmitProposal() {
                 <h3 className="text-xl font-bold relative z-10">Scan & Pay</h3>
                 <p className="text-sky-100/80 text-sm mt-1 relative z-10">Complete your transaction using UPI</p>
               </div>
-              
+
               <div className="p-6 space-y-6">
                 <div className="flex justify-between items-center py-4 border-b border-gray-100">
                   <span className="text-gray-500 font-medium">Amount to Pay</span>
@@ -744,9 +762,9 @@ export default function SubmitProposal() {
 
                 <div className="flex justify-center p-4">
                   {/* Using the provided QR Code image */}
-                  <img 
-                    src="/qr-code.jpg" 
-                    alt="Scan to Pay" 
+                  <img
+                    src="/qr-code.jpg"
+                    alt="Scan to Pay"
                     className="w-64 h-64 object-contain rounded-xl shadow-sm border border-gray-100"
                   />
                 </div>
@@ -756,8 +774,8 @@ export default function SubmitProposal() {
                     <p className="text-sm text-gray-500 text-center font-medium">
                       After a successful transaction, please enter your UPI Reference (UTR) ID below to verify the payment.
                     </p>
-                    <input 
-                      type="text" 
+                    <input
+                      type="text"
                       placeholder="e.g. 129384729182"
                       className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all font-mono"
                       value={transactionId}

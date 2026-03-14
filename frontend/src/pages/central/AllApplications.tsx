@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import StatusBadge from '@/components/dashboard/StatusBadge';
+import ProposalMapVisualization from '@/components/maps/ProposalMapVisualization';
 import { useState } from 'react';
 import { useWorkflowApplications } from '@/hooks/useWorkflowApplications';
 import { Link } from 'react-router-dom';
@@ -159,136 +160,28 @@ export default function AllApplications() {
           </div>
         )}
 
-        {/* Card Grid Container */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 relative z-10 w-full">
-          <AnimatePresence mode="popLayout">
-            {!isLoading && !loadError && filtered.map((app, i) => (
-              <motion.div 
-                initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95, transition: { duration: 0.2 } }}
-                transition={{ delay: i * 0.05, type: 'spring', bounce: 0.4 }}
-                key={app.id} 
-                className="group bg-white/70 backdrop-blur-2xl border border-white hover:border-emerald-200 rounded-[2rem] shadow-xl shadow-emerald-900/5 hover:shadow-2xl hover:shadow-emerald-900/10 hover:-translate-y-1 overflow-hidden flex flex-col transition-all duration-300 relative"
-              >
-                {/* Status Indicator Glow (subtle absolute positioning inside card) */}
-                <div className={`absolute top-0 right-0 w-32 h-32 rounded-full blur-[40px] opacity-20 pointer-events-none transition-colors duration-500
-                  ${app.status === 'Approved' ? 'bg-emerald-500' : 
-                    app.status === 'Rejected' ? 'bg-rose-500' : 
-                    app.status === 'Clarification Requested' ? 'bg-amber-500' : 'bg-emerald-500'}`} 
-                />
-
-                {/* Card Content Top Container */}
-                <div className="p-6 md:p-8 flex-1 flex flex-col relative z-10">
-                  {/* Top Header: ID & Status */}
-                  <div className="flex justify-between items-start gap-4 mb-5">
-                    <span className="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-black tracking-widest rounded-full border border-emerald-100 shadow-sm shrink-0">
-                      #{app.id.substring(app.id.length - 6).toUpperCase()}
-                    </span>
-                    <div className="shrink-0"><StatusBadge status={app.status} /></div>
-                  </div>
-                  
-                  {/* Main Identifier: Project Name */}
-                  <h3 className="text-xl font-bold text-emerald-950 mb-4 leading-tight group-hover:text-emerald-700 transition-colors line-clamp-2">
-                    {app.projectName}
-                  </h3>
-                  
-                  {/* Info Points */}
-                  <div className="space-y-3 mb-6 mt-auto">
-                    <div className="flex items-start gap-3 text-emerald-900/70 text-sm font-medium">
-                      <Building2 size={16} className="mt-0.5 shrink-0 text-emerald-400" />
-                      <span className="line-clamp-1">{app.proponent}</span>
-                    </div>
-                    <div className="flex items-center gap-3 text-emerald-900/70 text-sm font-medium">
-                      <MapPin size={16} className="shrink-0 text-emerald-400" />
-                      <span>{app.state}</span>
-                    </div>
-                  </div>
-
-                  {/* Badges Container */}
-                  <div className="flex flex-wrap gap-2 mt-auto">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-lg bg-emerald-50/50 text-emerald-700 text-[10px] font-bold uppercase tracking-wider border border-emerald-100/50 shadow-sm">
-                      {app.clearanceType} Clearance
-                    </span>
-                  </div>
-                </div>
-
-                {/* Action Footer */}
-                <div className="p-4 md:px-6 bg-gradient-to-t from-emerald-50/80 to-emerald-50/30 border-t border-emerald-100/50 flex flex-wrap items-center justify-between gap-2 relative z-10">
-                  
-                  {/* Action Group */}
-                  <div className="flex gap-2 flex-grow min-w-[200px]">
-                    {/* Approve Button */}
-                    <button 
-                      onClick={() => runAction(app.id, 'APPROVE')} 
-                      disabled={actionLoadingId === app.id} 
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 text-xs font-bold rounded-xl bg-emerald-50 text-emerald-600 border border-emerald-200/50 hover:bg-emerald-500 hover:text-white hover:shadow-md transition-all disabled:opacity-50"
-                      title="Approve / Send to Committee"
-                    >
-                      <Check size={14} className="shrink-0" /> <span className="truncate">Committee</span>
-                    </button>
-                    
-                    {/* Clarify Button */}
-                    <button 
-                      onClick={() => runAction(app.id, 'SEND_BACK')} 
-                      disabled={actionLoadingId === app.id} 
-                      className="w-10 h-10 inline-flex items-center justify-center shrink-0 text-xs font-bold rounded-xl bg-amber-50 text-amber-600 border border-amber-200/50 hover:bg-amber-500 hover:text-white hover:shadow-md transition-all disabled:opacity-50"
-                      title="Request Clarification"
-                    >
-                      <RotateCcw size={14} />
-                    </button>
-                    
-                    {/* Reject Button */}
-                    <button 
-                      onClick={() => runAction(app.id, 'REJECT')} 
-                      disabled={actionLoadingId === app.id} 
-                      className="w-10 h-10 inline-flex items-center justify-center shrink-0 text-xs font-bold rounded-xl bg-rose-50 text-rose-600 border border-rose-200/50 hover:bg-rose-500 hover:text-white hover:shadow-md transition-all disabled:opacity-50"
-                      title="Reject Application"
-                    >
-                      <X size={14} />
-                    </button>
-                  </div>
-
-                  {/* View Details Router Link */}
-                  <Link 
-                    to={`/central/applications/${app.id}`} 
-                    className="inline-flex items-center justify-center gap-2 pl-4 pr-3 py-2 rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-600/20 hover:bg-emerald-700 hover:shadow-lg hover:shadow-emerald-600/30 transition-all font-bold shrink-0 ml-auto group/btn"
-                    title="View Full Application Details"
-                  >
-                    <span className="text-xs">View</span>
-                    <ArrowUpRight size={14} className="group-hover/btn:-translate-y-0.5 group-hover/btn:translate-x-0.5 transition-transform" />
-                  </Link>
-
-                </div>
-              </motion.div>
-            ))}
-
-            {/* Empty State Card */}
-            {!isLoading && !loadError && filtered.length === 0 && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }}
-                className="col-span-1 md:col-span-2 lg:col-span-3 bg-white/70 backdrop-blur-2xl border border-white rounded-[2.5rem] p-16 shadow-xl shadow-emerald-900/5 flex flex-col items-center justify-center text-center relative overflow-hidden"
-              >
-                <div className="absolute inset-0 bg-emerald-50/30 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9InJnYmEoNzksIDcwLCAyMjksIDAuMSkiLz48L3N2Zz4=')] opacity-50 mix-blend-multiply" />
-                <div className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mb-6 shadow-inner relative z-10">
-                  <Globe size={48} className="text-emerald-400" />
-                </div>
-                <h3 className="text-2xl font-black text-emerald-950 mb-2 relative z-10">No Applications Found</h3>
-                <p className="text-emerald-800/60 font-medium max-w-sm relative z-10">
-                  We couldn't find any applications matching the currently selected geographic and clearance type filters.
-                </p>
-                <button 
-                  onClick={() => { setStateFilter('all'); setTypeFilter('all'); }}
-                  className="mt-6 px-6 py-2.5 bg-emerald-600 text-white font-bold rounded-xl shadow-md hover:bg-emerald-700 hover:shadow-lg transition-all relative z-10"
-                >
-                  Clear all filters
-                </button>
-              </motion.div>
-            )}
-
-          </AnimatePresence>
-        </div>
+        {/* Global Map Display */}
+        {!isLoading && !loadError && (
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="w-full bg-white/70 backdrop-blur-2xl border border-white rounded-[2rem] p-4 md:p-6 shadow-xl shadow-emerald-900/5 transition-all duration-300 relative overflow-hidden"
+          >
+            <div className="mb-4 flex items-center gap-2 px-2">
+              <Globe className="text-emerald-500" size={24} />
+              <div>
+                <h3 className="text-xl font-bold text-emerald-950 font-serif leading-tight">Geospatial Distribution</h3>
+                <p className="text-xs font-medium text-emerald-700/70">Interactive map mapping {filtered.length} visible proposals</p>
+              </div>
+            </div>
+            
+            <div className="rounded-[1.5rem] overflow-hidden shadow-inner border border-emerald-100 bg-emerald-50/50">
+              <ProposalMapVisualization className="w-full h-[600px]" proposals={filtered} role="central" showListOverlay={true} />
+            </div>
+          </motion.div>
+        )}
       </div>
     </div>
   );
 }
+
