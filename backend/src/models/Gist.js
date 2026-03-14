@@ -7,7 +7,7 @@ const gistSchema = new mongoose.Schema(
     meeting: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Meeting",
-      required: true,
+      required: false,
     },
 
     preparedBy: {

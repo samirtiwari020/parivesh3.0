@@ -15,6 +15,9 @@ const env = {
   RAZORPAY_KEY_ID: process.env.RAZORPAY_KEY_ID,
   RAZORPAY_SECRET: process.env.RAZORPAY_SECRET,
 
+  GEMINI_API_KEY: process.env.GEMINI_API_KEY,
+  GEMINI_MODEL: process.env.GEMINI_MODEL || "gemini-2.5-flash",
+
   NODE_ENV: process.env.NODE_ENV || "development",
 };
 

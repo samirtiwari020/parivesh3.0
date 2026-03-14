@@ -2,6 +2,7 @@
 
 const Application = require("../models/Application");
 const ActivityLog = require("../models/ActivityLog");
+const { generateOrUpdateApplicationGist } = require("../services/autoGistService");
 
 const isApplicant = (user) => user?.role === "APPLICANT";
 
@@ -354,6 +355,15 @@ exports.reviewApplication = async (req, res) => {
       updatedBy: req.user._id,
       remarks: remarks || `${action} by ${req.user.role}`,
     });
+
+    if (req.user.role === "CENTRAL_REVIEWER" && action === "APPROVE") {
+      const gist = await generateOrUpdateApplicationGist({
+        applicationId: application._id,
+        reviewedBy: req.user._id,
+      });
+
+      application.gistId = gist._id;
+    }
 
     await application.save();
 
