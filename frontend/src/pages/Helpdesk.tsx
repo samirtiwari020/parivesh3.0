@@ -123,7 +123,7 @@ export default function Helpdesk() {
                 Serving users across all states and union territories of India through our integrated digital infrastructure.
               </p>
               <Link to="/about" className="inline-flex items-center gap-2 text-sm font-bold text-emerald-400 hover:text-emerald-300 transition-colors group relative z-10">
-                Learn more about PARIVESH 
+                Learn more about PARIVESH 3.0 
                 <ChevronRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </Link>
             </motion.div>

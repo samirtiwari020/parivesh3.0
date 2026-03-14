@@ -5,7 +5,7 @@ const footerSections = [
   {
     title: 'About Portal',
     links: [
-      { label: 'About PARIVESH', href: '/about' },
+      { label: 'About PARIVESH 3.0', href: '/about' },
       { label: 'How It Works', href: '/about' },
       { label: 'FAQs', href: '/helpdesk' },
     ],
@@ -42,7 +42,7 @@ export default function Footer() {
                 <Landmark size={20} />
               </div>
               <div>
-                <h3 className="font-serif font-bold text-lg">PARIVESH</h3>
+                <h3 className="font-serif font-bold text-lg">PARIVESH 3.0</h3>
               </div>
             </div>
             <p className="text-sm text-primary-foreground/70 leading-relaxed">
@@ -78,7 +78,7 @@ export default function Footer() {
       <div className="border-t border-primary-foreground/10">
         <div className="gov-container px-4 md:px-6 py-4 flex flex-col md:flex-row items-center justify-between gap-2">
           <p className="text-xs text-primary-foreground/50">
-            © {new Date().getFullYear()} PARIVESH Portal. All rights reserved.
+            © {new Date().getFullYear()} PARIVESH 3.0 Portal. All rights reserved.
           </p>
           <p className="text-xs text-primary-foreground/50">
             Developed by National Informatics Centre (NIC)

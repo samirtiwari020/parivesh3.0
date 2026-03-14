@@ -38,7 +38,7 @@ export default function ApplicantLayout() {
           <Link to="/" className="flex items-center gap-3">
             <Landmark className="text-primary" size={22} />
             <div>
-              <h2 className="font-serif font-bold text-lg text-primary">PARIVESH</h2>
+              <h2 className="font-serif font-bold text-lg text-primary">PARIVESH 3.0</h2>
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Applicant</span>
             </div>
           </Link>

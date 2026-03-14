@@ -149,7 +149,7 @@ export default function Home() {
               </h2>
             </div>
             <p className="text-muted-foreground text-lg md:max-w-md border-l-2 border-primary/30 pl-6 py-2">
-              PARIVESH is a Single-Window Integrated Environmental Management System driving transparent policy execution.
+              PARIVESH 3.0 is a Single-Window Integrated Environmental Management System driving transparent policy execution.
             </p>
           </div>
 
