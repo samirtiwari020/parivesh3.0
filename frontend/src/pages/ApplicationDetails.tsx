@@ -71,12 +71,12 @@ interface ApplicationResponse {
 
 const statusMap: Record<string, ApplicationStatus> = {
   DRAFT: 'Pending',
-  SUBMITTED: 'Submitted',
-  UNDER_SCRUTINY: 'Under Review',
+  SUBMITTED: 'State',
+  UNDER_SCRUTINY: 'Central',
   EDS_RAISED: 'Clarification Requested',
-  RESUBMITTED: 'Under Review',
-  REFERRED_TO_MEETING: 'Committee Review',
-  IN_MEETING: 'Committee Review',
+  RESUBMITTED: 'State',
+  REFERRED_TO_MEETING: 'Committee',
+  IN_MEETING: 'Committee',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
 };
@@ -133,7 +133,6 @@ export default function ApplicationDetails() {
       ? '/state/review'
       : '/central/applications';
 
-  const canForward = section === 'state';
   const canSendBack = section === 'state' || section === 'central' || section === 'committee' || section === 'admin';
   const canReview = section === 'state' || section === 'central' || section === 'committee' || section === 'admin';
   const isApplicantSection = section === 'applicant';
@@ -713,7 +712,7 @@ export default function ApplicationDetails() {
             {saveError && <p className="text-xs text-destructive">{saveError}</p>}
             {saveSuccess && <p className="text-xs text-accent">{saveSuccess}</p>}
           </div>
-        ) : canReview ? (
+        ) : (canReview && application?.status !== 'APPROVED' && application?.status !== 'REJECTED') ? (
           <div className="mt-8 pt-6 border-t border-border">
             <h3 className="text-sm font-semibold mb-3">Review Actions</h3>
             {canSendBack && (
@@ -757,15 +756,6 @@ export default function ApplicationDetails() {
               >
                 Reject
               </button>
-              {canForward && (
-                <button
-                  onClick={() => takeAction('FORWARD')}
-                  disabled={pendingAction !== null}
-                  className="px-3 py-1 text-xs font-medium rounded-lg bg-status-review/10 text-status-review hover:bg-status-review/20 transition-colors disabled:opacity-50"
-                >
-                  Forward
-                </button>
-              )}
               {canSendBack && (
                 <button
                   onClick={handleRaiseEDS}

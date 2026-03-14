@@ -5,14 +5,21 @@ interface TimelineProps {
   currentStatus: ApplicationStatus;
 }
 
-const stages = ['Submitted', 'Under Review', 'Committee Review', 'Recommended', 'Approved'];
+const stages = ['Submitted', 'State', 'Central', 'Committee', 'Approved'];
+
+function getEffectiveStage(status: ApplicationStatus): string {
+  if (status === 'Clarification Requested') return 'State';
+  if (status === 'Pending') return 'Submitted';
+  return status;
+}
 
 function getStageState(stageIndex: number, currentStatus: ApplicationStatus) {
   if (currentStatus === 'Rejected') {
     if (stageIndex === 0) return 'completed';
     return 'inactive';
   }
-  const currentIndex = stages.indexOf(currentStatus);
+  const effectiveStatus = getEffectiveStage(currentStatus);
+  const currentIndex = stages.indexOf(effectiveStatus);
   if (currentIndex === -1) return 'inactive';
   if (stageIndex < currentIndex) return 'completed';
   if (stageIndex === currentIndex) return 'current';

@@ -7,8 +7,9 @@ interface StatusBadgeProps {
 const statusStyles: Record<string, string> = {
   'Approved': 'gov-status-approved',
   'Rejected': 'gov-status-rejected',
-  'Under Review': 'gov-status-review',
-  'Committee Review': 'gov-status-review',
+  'State': 'gov-status-review',
+  'Central': 'gov-status-review',
+  'Committee': 'gov-status-review',
   'Submitted': 'bg-muted text-muted-foreground',
   'Recommended': 'gov-status-approved',
   'Pending': 'gov-status-pending',

@@ -1,14 +1,14 @@
 import type { Application, Notice, Manual, Notification, StatData, User, ActivityLog } from '@/types';
 
 export const mockApplications: Application[] = [
-  { id: 'ENV/2024/001', projectName: 'Highway Expansion NH-44', clearanceType: 'Environment', state: 'Maharashtra', submissionDate: '2024-10-12', status: 'Under Review', sector: 'Infrastructure', estimatedCost: '₹1,200 Cr', proponent: 'NHAI' },
+  { id: 'ENV/2024/001', projectName: 'Highway Expansion NH-44', clearanceType: 'Environment', state: 'Maharashtra', submissionDate: '2024-10-12', status: 'Central', sector: 'Infrastructure', estimatedCost: '₹1,200 Cr', proponent: 'NHAI' },
   { id: 'FOR/2024/089', projectName: 'Solar Park Phase II', clearanceType: 'Forest', state: 'Rajasthan', submissionDate: '2024-10-10', status: 'Approved', sector: 'Renewable Energy', estimatedCost: '₹850 Cr', proponent: 'NTPC Ltd' },
   { id: 'WLD/2024/045', projectName: 'Eco-Tourism Resort', clearanceType: 'Wildlife', state: 'Kerala', submissionDate: '2024-10-05', status: 'Pending', sector: 'Tourism', estimatedCost: '₹45 Cr', proponent: 'Kerala Tourism Dev Corp' },
   { id: 'CRZ/2024/012', projectName: 'Port Terminal Expansion', clearanceType: 'CRZ', state: 'Gujarat', submissionDate: '2024-09-28', status: 'Rejected', sector: 'Port & Shipping', estimatedCost: '₹3,500 Cr', proponent: 'Adani Ports' },
-  { id: 'ENV/2024/034', projectName: 'Thermal Power Plant Unit 5', clearanceType: 'Environment', state: 'Chhattisgarh', submissionDate: '2024-09-20', status: 'Committee Review', sector: 'Power', estimatedCost: '₹4,200 Cr', proponent: 'NTPC Ltd' },
+  { id: 'ENV/2024/034', projectName: 'Thermal Power Plant Unit 5', clearanceType: 'Environment', state: 'Chhattisgarh', submissionDate: '2024-09-20', status: 'Committee', sector: 'Power', estimatedCost: '₹4,200 Cr', proponent: 'NTPC Ltd' },
   { id: 'FOR/2024/102', projectName: 'Mining Expansion Block C', clearanceType: 'Forest', state: 'Jharkhand', submissionDate: '2024-09-15', status: 'Submitted', sector: 'Mining', estimatedCost: '₹600 Cr', proponent: 'Coal India Ltd' },
-  { id: 'ENV/2024/078', projectName: 'Cement Plant Modernization', clearanceType: 'Environment', state: 'Andhra Pradesh', submissionDate: '2024-09-10', status: 'Recommended', sector: 'Industry', estimatedCost: '₹320 Cr', proponent: 'UltraTech Cement' },
-  { id: 'WLD/2024/023', projectName: 'Linear Infrastructure Project', clearanceType: 'Wildlife', state: 'Madhya Pradesh', submissionDate: '2024-09-05', status: 'Under Review', sector: 'Infrastructure', estimatedCost: '₹780 Cr', proponent: 'Indian Railways' },
+  { id: 'ENV/2024/078', projectName: 'Cement Plant Modernization', clearanceType: 'Environment', state: 'Andhra Pradesh', submissionDate: '2024-09-10', status: 'Committee', sector: 'Industry', estimatedCost: '₹320 Cr', proponent: 'UltraTech Cement' },
+  { id: 'WLD/2024/023', projectName: 'Linear Infrastructure Project', clearanceType: 'Wildlife', state: 'Madhya Pradesh', submissionDate: '2024-09-05', status: 'Central', sector: 'Infrastructure', estimatedCost: '₹780 Cr', proponent: 'Indian Railways' },
   { id: 'CRZ/2024/056', projectName: 'Coastal Road Extension', clearanceType: 'CRZ', state: 'Maharashtra', submissionDate: '2024-08-28', status: 'Approved', sector: 'Infrastructure', estimatedCost: '₹12,000 Cr', proponent: 'BMC Mumbai' },
   { id: 'FOR/2024/145', projectName: 'Wind Farm Installation', clearanceType: 'Forest', state: 'Tamil Nadu', submissionDate: '2024-08-22', status: 'Pending', sector: 'Renewable Energy', estimatedCost: '₹280 Cr', proponent: 'Suzlon Energy' },
 ];
