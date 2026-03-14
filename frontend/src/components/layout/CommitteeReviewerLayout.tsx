@@ -35,7 +35,7 @@ export default function CommitteeReviewerLayout() {
           <Link to="/" className="flex items-center gap-3">
             <Users className="text-primary" size={22} />
             <div>
-              <h2 className="font-serif font-bold text-lg text-primary">PARIVESH</h2>
+              <h2 className="font-serif font-bold text-lg text-primary">PARIVESH 3.0</h2>
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Committee Reviewer</span>
             </div>
           </Link>

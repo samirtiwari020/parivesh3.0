@@ -42,7 +42,7 @@ export default function AdminLayout() {
           <Link to="/" className="flex items-center gap-3">
             <Landmark className="text-primary-foreground" size={22} />
             <div>
-              <h2 className="font-serif font-bold text-lg text-primary-foreground">PARIVESH</h2>
+              <h2 className="font-serif font-bold text-lg text-primary-foreground">PARIVESH 3.0</h2>
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Admin Panel</span>
             </div>
           </Link>

@@ -38,7 +38,7 @@ export default function Header() {
             <Landmark className="text-primary" size={22} />
           </div>
           <div>
-            <h1 className="font-serif font-semibold text-base md:text-lg leading-tight text-primary">PARIVESH</h1>
+            <h1 className="font-serif font-semibold text-base md:text-lg leading-tight text-primary">PARIVESH 3.0</h1>
             <p className="text-[9px] md:text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">
               Ministry of Environment, Forest & Climate Change
             </p>
