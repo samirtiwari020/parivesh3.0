@@ -15,8 +15,8 @@ const profileSchema = z.object({
 
 type ProfileForm = z.infer<typeof profileSchema>;
 
-export default function Settings() {
-  const { user, login } = useAuth();
+export default function CentralSettings() {
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState<'profile' | 'preferences' | 'security'>('profile');
   const [isSuccess, setIsSuccess] = useState(false);
   const [updateError, setUpdateError] = useState('');
@@ -25,8 +25,8 @@ export default function Settings() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name || '',
-      phone: (user as Record<string, unknown>)?.phone as string || '',
-      organization: (user as Record<string, unknown>)?.organization as string || '',
+      phone: (user as unknown as Record<string, unknown>)?.phone as string || '',
+      organization: (user as unknown as Record<string, unknown>)?.organization as string || '',
     }
   });
 
@@ -55,16 +55,17 @@ export default function Settings() {
       
       {/* Universal Beautiful Background with Blend Mode */}
       <div 
-        className="absolute inset-0 z-0 opacity-[0.25] pointer-events-none mix-blend-multiply"
+        className="absolute inset-0 z-0 opacity-[0.20] pointer-events-none mix-blend-multiply"
         style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=1920&q=80")', // A beautiful, serene, premium forest aesthetic
+          backgroundImage: 'url("https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=1920&q=80")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
         }}
       />
       
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/70 via-white/80 to-teal-50/90 pointer-events-none z-0" />
+      {/* Central Authority specific gradient to match dashboard */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/80 via-white/80 to-teal-50/90 pointer-events-none z-0" />
       
       {/* Dynamic Ambient Glows */}
       <div className="absolute top-0 right-1/4 w-[35rem] h-[35rem] bg-emerald-200/40 rounded-full blur-[120px] pointer-events-none z-0 -translate-y-1/2" />
@@ -92,7 +93,7 @@ export default function Settings() {
             <div className="text-center md:text-left flex-1 min-w-0">
               <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-800/40 border border-emerald-700/50 text-emerald-100 text-[10px] font-bold uppercase tracking-wider mb-3">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Account Settings
+                Central Account
               </div>
               <h1 className="text-3xl md:text-4xl font-serif font-black text-white mb-3 truncate">
                 {user?.name || 'User Profile'}
@@ -276,13 +277,13 @@ export default function Settings() {
                      transition={{ duration: 0.3 }}
                      className="py-16 text-center flex flex-col items-center justify-center h-full"
                    >
-                     <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-indigo-100 to-emerald-50/50 text-indigo-500 flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
+                     <div className="w-24 h-24 rounded-[2rem] bg-gradient-to-br from-emerald-100 to-emerald-50/50 text-emerald-500 flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
                        <Shield size={40} className="drop-shadow-sm" />
                      </div>
                      <h3 className="text-3xl font-black text-emerald-950 mb-3 font-serif">Security Settings</h3>
                      <p className="text-emerald-700/80 font-medium max-w-sm mx-auto">Update your password, manage active sessions, and configure two-factor authentication.</p>
                      
-                     <div className="mt-8 px-4 py-2 bg-indigo-50 rounded-full border border-indigo-100 text-indigo-600 text-sm font-bold uppercase tracking-widest pointer-events-none opacity-60">
+                     <div className="mt-8 px-4 py-2 bg-emerald-50 rounded-full border border-emerald-100 text-emerald-600 text-sm font-bold uppercase tracking-widest pointer-events-none opacity-60">
                        Under Construction
                      </div>
                    </motion.div>

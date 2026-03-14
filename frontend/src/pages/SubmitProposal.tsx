@@ -69,7 +69,7 @@ const uploadDocument = async (
 
 export default function SubmitProposal() {
   const [currentStep, setCurrentStep] = useState(0);
-  const [formData, setFormData] = useState<Record<string, any>>({});
+  const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [selectedClearances, setSelectedClearances] = useState<string[]>([]);
   const [eiaFiles, setEiaFiles] = useState<File[]>([]);
   const [mapFiles, setMapFiles] = useState<File[]>([]);
@@ -83,7 +83,7 @@ export default function SubmitProposal() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [paymentGatewayStatus, setPaymentGatewayStatus] = useState<'IDLE' | 'PROCESSING' | 'SUCCESS' | 'FAILED'>('IDLE');
-  const [currentPaymentData, setCurrentPaymentData] = useState<any>(null);
+  const [currentPaymentData, setCurrentPaymentData] = useState<Record<string, unknown> | null>(null);
   const [transactionId, setTransactionId] = useState('');
   
   const navigate = useNavigate();
@@ -157,6 +157,7 @@ export default function SubmitProposal() {
 
       // 3. Create Payment
       const paymentAmount = 5000; // Mock fee amount
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const paymentResponse = await apiRequest<any>('/api/payments/create', {
         method: 'POST',
         token,
@@ -196,7 +197,7 @@ export default function SubmitProposal() {
         method: 'POST',
         token,
         body: JSON.stringify({
-          paymentId: currentPaymentData.payment._id,
+          paymentId: currentPaymentData?.payment ? (currentPaymentData.payment as Record<string, unknown>)._id : '',
           transactionId: transactionId
         })
       });
