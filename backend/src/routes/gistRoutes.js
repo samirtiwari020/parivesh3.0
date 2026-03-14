@@ -8,7 +8,8 @@ const {
   getGistByMeeting,
   getGistById,
   updateGist,
-  finalizeGist
+  finalizeGist,
+  downloadGistPdf,
 } = require("../controllers/gistController");
 
 const authMiddleware = require("../middleware/authMiddleware");
@@ -25,6 +26,12 @@ router.get(
   "/meeting/:meetingId",
   authMiddleware,
   getGistByMeeting
+);
+
+router.get(
+  "/:id/pdf",
+  authMiddleware,
+  downloadGistPdf
 );
 
 router.get(
