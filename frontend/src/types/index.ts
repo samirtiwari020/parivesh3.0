@@ -27,6 +27,10 @@ export interface Proposal {
   submissionDate: string;
   estimatedCost: string;
   proponent: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
   remarks?: string;
 }
 
@@ -45,6 +49,11 @@ export interface Application {
   sector: string;
   estimatedCost: string;
   proponent: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+  district?: string;
 }
 
 export interface Notice {

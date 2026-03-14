@@ -1,4 +1,4 @@
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, CircleMarker, Popup } from 'react-leaflet';
 import { Link } from 'react-router-dom';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -13,36 +13,23 @@ interface ProposalMapVisualizationProps {
   showListOverlay?: boolean;
 }
 
-// Function to generate a colored SVG map pin using Leaflet DivIcon
-const getStatusColorInfo = (status: string) => {
+// Function to get marker color based on status
+const getMarkerColor = (status: string) => {
   const s = (status || '').toUpperCase();
-  if (['APPROVED'].includes(s)) return { hex: '#10b981', tw: 'bg-emerald-500' }; // Green
-  if (['REJECTED'].includes(s)) return { hex: '#ef4444', tw: 'bg-red-500' }; // Red
-  return { hex: '#f59e0b', tw: 'bg-amber-500' }; // Orange (Review, Hold, etc)
+  if (s === 'APPROVED') return '#10b981'; // Green
+  if (s === 'REJECTED') return '#ef4444'; // Red
+  if (['UNDER_SCRUTINY', 'UNDER REVIEW', 'IN_MEETING', 'REFERRED_TO_MEETING', 'COMMITTEE', 'CENTRAL', 'STATE'].includes(s)) {
+    return '#f59e0b'; // Yellow/Amber
+  }
+  return '#6b7280'; // Default gray
 };
-const createColoredIcon = (status: string) => {
-  const { hex } = getStatusColorInfo(status);
-  
-  const markerHtmlStyles = `
-    background-color: ${hex};
-    width: 24px;
-    height: 24px;
-    display: block;
-    left: -12px;
-    top: -12px;
-    position: relative;
-    border-radius: 3rem 3rem 0;
-    transform: rotate(45deg);
-    border: 2px solid #FFFFFF;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
-  `;
-  
-  return L.divIcon({
-    className: 'custom-pin-icon',
-    iconAnchor: [0, 24],
-    popupAnchor: [0, -26],
-    html: `<span style="${markerHtmlStyles}" />`
-  });
+
+const getStatusColorInfo = (status: string) => {
+  const color = getMarkerColor(status);
+  if (color === '#10b981') return { hex: color, tw: 'bg-emerald-500' };
+  if (color === '#ef4444') return { hex: color, tw: 'bg-red-500' };
+  if (color === '#f59e0b') return { hex: color, tw: 'bg-amber-500' };
+  return { hex: color, tw: 'bg-slate-500' };
 };
 
 export default function ProposalMapVisualization({ className, proposals = [], role = 'central', showListOverlay = false }: ProposalMapVisualizationProps) {
@@ -53,7 +40,6 @@ export default function ProposalMapVisualization({ className, proposals = [], ro
         zoom={5} 
         style={{ width: '100%', height: '100%' }}
       >
-        {/* Using standard open-source map tiles instead of Google Maps */}
         <TileLayer
           url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
@@ -61,54 +47,101 @@ export default function ProposalMapVisualization({ className, proposals = [], ro
         
         {proposals.map((proposal) => {
           const key = proposal.id || proposal._id || Math.random().toString();
-          const lat = Number(proposal?.coordinates?.latitude);
-          const lng = Number(proposal?.coordinates?.longitude);
+          const lat = Number(proposal?.coordinates?.latitude || proposal?.latitude);
+          const lng = Number(proposal?.coordinates?.longitude || proposal?.longitude);
 
           if (!isNaN(lat) && !isNaN(lng)) {
+            const color = getMarkerColor(proposal.status);
+            
             return (
-              <Marker
+              <CircleMarker
                 key={key}
-                position={[lat, lng]}
-                icon={createColoredIcon(proposal.status)}
+                center={[lat, lng]}
+                radius={8}
+                fillColor={color}
+                color="#333"
+                weight={1}
+                opacity={1}
+                fillOpacity={0.8}
               >
                 <Popup className="proposal-popup">
-                  <div className="font-sans min-w-[200px] p-1">
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-bold text-sm text-slate-800 leading-tight pr-4">{proposal.projectName || 'Proposal'}</h4>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold tracking-wide uppercase ${
-                        proposal.status === 'Approved' ? 'bg-emerald-100 text-emerald-800' : 
-                        proposal.status === 'Rejected' ? 'bg-red-100 text-red-800' : 
-                        'bg-amber-100 text-amber-800'
-                      }`}>
-                        {proposal.status || 'Unknown'}
-                      </span>
+                  <div className="font-sans min-w-[220px] p-1">
+                    <div className="flex flex-col gap-1 mb-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Project Name</span>
+                        <div className="flex items-center gap-1.5">
+                          <div className={`w-2 h-2 rounded-full ${getStatusColorInfo(proposal.status).tw}`} />
+                          <span className={`text-[10px] font-bold tracking-wide uppercase ${
+                            proposal.status?.toUpperCase() === 'APPROVED' ? 'text-emerald-700' : 
+                            proposal.status?.toUpperCase() === 'REJECTED' ? 'text-red-700' : 
+                            'text-amber-700'
+                          }`}>
+                            {proposal.status?.replace(/_/g, ' ') || 'Unknown'}
+                          </span>
+                        </div>
+                      </div>
+                      <h4 className="font-bold text-sm text-slate-800 leading-tight">{proposal.projectName || 'Proposal'}</h4>
                     </div>
                     
-                    <div className="space-y-1 mb-3">
-                      <p className="text-[11px] text-slate-500 flex justify-between border-b border-slate-100 pb-1">
-                        <span>ID:</span> <span className="font-mono text-slate-700">{proposal.id}</span>
-                      </p>
-                      {proposal.companyName && (
-                        <p className="text-[11px] text-slate-500 flex justify-between border-b border-slate-100 pb-1">
-                          <span>Applicant:</span> <span className="text-slate-700 truncate max-w-[120px]" title={proposal.companyName}>{proposal.companyName}</span>
-                        </p>
-                      )}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Category</span>
+                        <span className="text-[11px] font-semibold text-slate-700 leading-tight">
+                          {proposal.sector || proposal.clearanceType || 'General'}
+                        </span>
+                      </div>
+                      
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Location</span>
+                        <span className="text-[11px] font-semibold text-slate-700 leading-tight truncate" title={proposal.state}>
+                          {proposal.district ? `${proposal.district}, ` : ''}{proposal.state || 'India'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="mb-4 p-2 bg-slate-50 rounded-lg border border-slate-100">
+                      <div className="flex justify-between items-center text-[10px]">
+                        <span className="font-bold text-slate-400 uppercase">Proposal ID</span>
+                        <span className="font-mono text-slate-600 font-bold">{(proposal.id || proposal._id)?.toString().toUpperCase()}</span>
+                      </div>
                     </div>
                     
                     <Link 
-                      to={`/${role}/applications/${proposal.id}`} 
-                      className="block w-full text-center bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium py-1.5 rounded transition-colors shadow-sm"
+                      to={`/${role}/applications/${proposal.id || proposal._id}`} 
+                      className="group flex items-center justify-center gap-2 w-full bg-slate-900 hover:bg-emerald-600 text-white text-[11px] font-bold py-2.5 rounded-xl transition-all shadow-md hover:shadow-emerald-900/20 active:scale-[0.98]"
                     >
-                      View Full Details &rarr;
+                      View Full Details
+                      <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                      </svg>
                     </Link>
                   </div>
                 </Popup>
-              </Marker>
+              </CircleMarker>
             );
           }
           return null;
         })}
       </MapContainer>
+
+      {/* Legend Box */}
+      <div className="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md px-4 py-3 rounded-2xl border border-white shadow-xl z-[1000] flex flex-col gap-2 min-w-[160px]">
+        <h5 className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Status Legend</h5>
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-sm shadow-emerald-500/20" />
+          <span className="text-xs font-bold text-slate-700">Approved Projects</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full bg-amber-500 shadow-sm shadow-amber-500/20" />
+          <span className="text-xs font-bold text-slate-700">Under Review</span>
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="w-3 h-3 rounded-full bg-red-500 shadow-sm shadow-red-500/20" />
+          <span className="text-xs font-bold text-slate-700">Rejected Projects</span>
+        </div>
+      </div>
+
+
       
       {/* Optional Overlay List */}
       {showListOverlay && proposals.length > 0 && (
