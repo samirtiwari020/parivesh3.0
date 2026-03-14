@@ -5,7 +5,7 @@ import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 const tabs = [
   { id: 'objective', label: 'Objective', icon: Compass },
-  { id: 'evolution', label: 'Evolution of PARIVESH', icon: Workflow },
+  { id: 'evolution', label: 'Evolution of PARIVESH 3.0', icon: Workflow },
   { id: 'modules', label: 'Modules', icon: Globe },
 ];
 
@@ -226,7 +226,7 @@ export default function About() {
 
                   <div className="prose prose-emerald max-w-none text-slate-600 font-medium text-lg leading-relaxed">
                     <p>
-                      In pursuant to <strong className="text-slate-800">'Digital India'</strong> and capturing the spirit of Minimum Government and Maximum Governance, a Single-Window named <strong className="text-emerald-700">PARIVESH</strong> (Pro-Active and Responsive facilitation by Interactive, Virtuous, and Environmental Single Window Hub) has been developed by the MOEFCC through NIC.
+                      In pursuant to <strong className="text-slate-800">'Digital India'</strong> and capturing the spirit of Minimum Government and Maximum Governance, a Single-Window named <strong className="text-emerald-700">PARIVESH 3.0</strong> (Pro-Active and Responsive facilitation by Interactive, Virtuous, and Environmental Single Window Hub) has been developed by the MOEFCC through NIC.
                     </p>
                     <p className="mt-6">
                       Encouraged by the success of the existing system, its scope has been further onboarded with a technology-driven and professionally run institutional mechanism. It provides a comprehensive single window solution for the administration of all green clearances and monitors their subsequent compliance across the nation. Process transformation, technology transformation, and domain knowledge intervention were the key drivers behind the framework of the new PARIVESH 3.0.
@@ -264,7 +264,7 @@ export default function About() {
                   <div className="mb-10">
                     <h2 className="text-3xl font-serif font-bold text-slate-900 mb-4">Journey of Transformation</h2>
                     <p className="text-slate-600 font-medium text-lg">
-                      The evolution of PARIVESH marks a significant milestone in India's journey towards sustainable growth and transparent governance.
+                      The evolution of PARIVESH 3.0 marks a significant milestone in India's journey towards sustainable growth and transparent governance.
                     </p>
                   </div>
 
@@ -307,7 +307,7 @@ export default function About() {
                   <div className="mb-8">
                     <h2 className="text-3xl font-serif font-bold text-slate-900 mb-4">Core Clearances</h2>
                     <p className="text-slate-600 font-medium text-lg">
-                      PARIVESH encompasses various specialized modules designed to logically distribute and streamline specific types of green clearances.
+                      PARIVESH 3.0 encompasses various specialized modules designed to logically distribute and streamline specific types of green clearances.
                     </p>
                   </div>
 

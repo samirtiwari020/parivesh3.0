@@ -42,7 +42,7 @@ app.use("/api/templates", templateRoutes);
 app.use("/api/admin", adminRoutes);
 
 app.get("/", (req, res) => {
-  res.json({ message: "PARIVESH Backend API Running 🚀" });
+  res.json({ message: "PARIVESH 3.0 Backend API Running 🚀" });
 });
 
 app.use((err, req, res, next) => {

@@ -26,7 +26,7 @@ const run = async () => {
   const name = getArgValue("--name") || getPositionalArg(2) || process.env.STAFF_NAME || "Staff User";
   const roleInput = (getArgValue("--role") || getPositionalArg(3) || process.env.STAFF_ROLE || "ADMIN").toUpperCase();
   const state = getArgValue("--state") || getPositionalArg(4) || process.env.STAFF_STATE;
-  const organization = getArgValue("--organization") || getPositionalArg(5) || process.env.STAFF_ORGANIZATION || "PARIVESH";
+  const organization = getArgValue("--organization") || getPositionalArg(5) || process.env.STAFF_ORGANIZATION || "PARIVESH 3.0";
   const phone = getArgValue("--phone") || getPositionalArg(6) || process.env.STAFF_PHONE;
 
   if (!email || !password) {

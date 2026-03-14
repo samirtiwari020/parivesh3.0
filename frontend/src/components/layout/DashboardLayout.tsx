@@ -34,7 +34,7 @@ export default function DashboardLayout() {
             <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 group-hover:bg-white/20 transition-all shadow-inner">
               <Landmark className="text-accent" size={24} />
             </div>
-            <h2 className="font-serif font-bold text-xl text-white tracking-wide">PARIVESH</h2>
+            <h2 className="font-serif font-bold text-xl text-white tracking-wide">PARIVESH 3.0</h2>
           </Link>
           <button onClick={() => setSidebarOpen(false)} className="ml-auto lg:hidden text-emerald-100 hover:text-white">
             <X size={24} />

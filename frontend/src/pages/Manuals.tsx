@@ -81,7 +81,7 @@ export default function Manuals() {
                 custom={3} initial="hidden" animate="visible" variants={fadeUpVariants}
                 className="text-lg text-slate-600 font-medium leading-relaxed"
               >
-                Comprehensive guides, SOPs, and step-by-step instructions to help you navigate and master the PARIVESH system seamlessly.
+                Comprehensive guides, SOPs, and step-by-step instructions to help you navigate and master the PARIVESH 3.0 system seamlessly.
               </motion.p>
             </div>
 

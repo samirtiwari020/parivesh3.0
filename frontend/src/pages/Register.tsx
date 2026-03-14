@@ -95,8 +95,8 @@ export default function Register() {
             </div>
 
             <h2 className="text-4xl font-serif font-bold text-white mb-4 leading-tight drop-shadow-md">
-              Join <br/>
-              <span className="text-accent">PARIVESH</span> Today
+              Welcome to <br/>
+              <span className="text-accent">PARIVESH 3.0</span>
             </h2>
 
             <p className="text-emerald-50/80 text-lg leading-relaxed">

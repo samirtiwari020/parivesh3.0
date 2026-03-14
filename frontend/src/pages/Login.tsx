@@ -89,7 +89,7 @@ export default function Login() {
 
             <h2 className="text-4xl font-serif font-bold text-white mb-4 leading-tight drop-shadow-md">
               Welcome to <br/>
-              <span className="text-accent">PARIVESH</span>
+              <span className="text-accent">PARIVESH 3.0</span>
             </h2>
 
             <p className="text-emerald-50/80 text-lg leading-relaxed">
@@ -124,7 +124,7 @@ export default function Login() {
 
             <h1 className="text-3xl font-bold text-foreground mb-2">Welcome Back</h1>
             <p className="text-muted-foreground">
-              Please sign in to your PARIVESH account
+              Please sign in to your PARIVESH 3.0 account
             </p>
           </div>
 

@@ -38,7 +38,7 @@ export default function StateReviewerLayout() {
           <Link to="/" className="flex items-center gap-3">
             <Shield className="text-status-review" size={22} />
             <div>
-              <h2 className="font-serif font-bold text-lg text-primary">PARIVESH</h2>
+              <h2 className="font-serif font-bold text-lg text-primary">PARIVESH 3.0</h2>
               <span className="text-[10px] text-status-review uppercase tracking-wider font-semibold">State Reviewer</span>
             </div>
           </Link>
