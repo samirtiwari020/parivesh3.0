@@ -1,10 +1,9 @@
 import { motion } from 'framer-motion';
-import { FileSearch, Clock, Send, MapPin } from 'lucide-react';
+import { FileSearch, Clock, Send, MapPin, Globe } from 'lucide-react';
 import StatCard from '@/components/dashboard/StatCard';
-import StatusBadge from '@/components/dashboard/StatusBadge';
 import ClearanceChart from '@/components/charts/ClearanceChart';
+import ProposalMapVisualization from '@/components/maps/ProposalMapVisualization';
 import { useAuth } from '@/contexts/AuthContext';
-import { Link } from 'react-router-dom';
 import { useWorkflowApplications } from '@/hooks/useWorkflowApplications';
 
 export default function StateDashboard() {
@@ -64,51 +63,20 @@ export default function StateDashboard() {
         <StatCard label="Forwarded to Central" value={String(forwarded)} icon={<Send size={20} />} colorClass="text-accent" delay={0.3} />
       </div>
 
-      <ClearanceChart data={chartData} />
-
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="gov-card p-0 overflow-hidden">
-        <div className="px-6 py-4 border-b border-border">
-          <h3 className="font-semibold text-foreground">Proposals Requiring Review — {user?.state}</h3>
+      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="w-full bg-surface/50 border border-border rounded-[2rem] p-4 md:p-6 shadow-xl transition-all duration-300 relative overflow-hidden">
+        <div className="mb-4 flex items-center gap-2 px-2">
+          <Globe className="text-primary" size={24} />
+          <div>
+            <h3 className="text-xl font-bold text-foreground font-serif leading-tight">Geospatial Distribution</h3>
+            <p className="text-xs font-medium text-muted-foreground">Interactive map mapping {stateApps.length} visible proposals in {user?.state}</p>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm text-left">
-            <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
-              <tr>
-                <th className="px-6 py-4 font-medium">ID</th>
-                <th className="px-6 py-4 font-medium hidden sm:table-cell">Project</th>
-                <th className="px-6 py-4 font-medium hidden md:table-cell">District</th>
-                <th className="px-6 py-4 font-medium hidden md:table-cell">Sector</th>
-                <th className="px-6 py-4 font-medium">Status</th>
-                <th className="px-6 py-4 font-medium text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {isLoading ? (
-                <tr><td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">Loading applications...</td></tr>
-              ) : loadError ? (
-                <tr><td colSpan={6} className="px-6 py-12 text-center text-destructive">{loadError}</td></tr>
-              ) : stateApps.slice(0, 5).map(app => (
-                <tr key={app.id} className="hover:bg-muted/30 transition-colors">
-                  <td className="px-6 py-4 font-medium tabular-data">{app.id}</td>
-                  <td className="px-6 py-4 hidden sm:table-cell">{app.projectName}</td>
-                  <td className="px-6 py-4 hidden md:table-cell">{app.district}</td>
-                  <td className="px-6 py-4 hidden md:table-cell">{app.sector}</td>
-                  <td className="px-6 py-4"><StatusBadge status={app.status} /></td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex justify-end gap-2">
-                      <Link to="/state/review" className="px-3 py-1 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors">Review</Link>
-                      <Link to={`/state/applications/${app.id}`} className="px-3 py-1 text-xs font-medium rounded-lg bg-accent/10 text-accent hover:bg-accent/20 transition-colors">View</Link>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {!isLoading && !loadError && stateApps.length === 0 && (
-                <tr><td colSpan={6} className="px-6 py-12 text-center text-muted-foreground">No proposals found for {user?.state}</td></tr>
-              )}
-            </tbody>
-          </table>
+        <div className="rounded-xl overflow-hidden shadow-inner border border-border bg-background/50">
+          <ProposalMapVisualization className="w-full h-[600px]" proposals={stateApps} role="state" showListOverlay={true} />
         </div>
       </motion.div>
+
+      <ClearanceChart data={chartData} />
     </div>
   );
 }

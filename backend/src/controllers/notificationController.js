@@ -23,6 +23,25 @@ exports.getNotifications = async (req, res) => {
   }
 };
 
+// Get ALL notifications for admin
+exports.getAllAdminNotifications = async (req, res) => {
+  try {
+    const notifications = await Notification.find().sort({ createdAt: -1 }).populate('recipient', 'name email role state');
+
+    res.status(200).json({
+      success: true,
+      count: notifications.length,
+      notifications
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch all notifications",
+      error: error.message
+    });
+  }
+};
+
 // Mark single notification as read
 exports.markAsRead = async (req, res) => {
   try {

@@ -5,6 +5,7 @@ const router = express.Router();
 
 const {
   getNotifications,
+  getAllAdminNotifications,
   markAsRead,
   markAllAsRead,
   deleteNotification
@@ -17,6 +18,13 @@ router.get(
   "/",
   authMiddleware,
   getNotifications
+);
+
+// Get ALL notifications for admin
+router.get(
+  "/admin/all",
+  authMiddleware,
+  getAllAdminNotifications
 );
 
 // Mark one notification as read

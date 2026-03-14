@@ -1,10 +1,12 @@
 import { motion } from 'framer-motion';
 import StatusBadge from '@/components/dashboard/StatusBadge';
+import ProposalMapVisualization from '@/components/maps/ProposalMapVisualization';
 import { useAuth } from '@/contexts/AuthContext';
 import { useState } from 'react';
 import { useWorkflowApplications } from '@/hooks/useWorkflowApplications';
 import { apiRequest } from '@/lib/api';
 import { Link } from 'react-router-dom';
+import { Globe, MapPin } from 'lucide-react';
 
 const AUTH_TOKEN_KEY = 'parivesh_auth_token';
 
@@ -56,7 +58,12 @@ export default function ReviewApplications() {
   return (
     <div className="max-w-6xl mx-auto space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <h2 className="text-xl font-serif font-bold text-foreground">Review Applications — {user?.state}</h2>
+        <div>
+          <h2 className="text-2xl font-serif font-bold text-foreground">Review Applications</h2>
+          <p className="text-sm text-muted-foreground mt-1 flex items-center gap-1">
+            <MapPin size={14} /> Viewing proposals for <strong>{user?.state || 'All States'}</strong>
+          </p>
+        </div>
         <select value={filter} onChange={e => setFilter(e.target.value)} className="gov-input w-auto">
           <option value="all">All Types</option>
           <option value="EC">Environmental</option>
@@ -66,7 +73,32 @@ export default function ReviewApplications() {
         </select>
       </div>
 
-      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="gov-card p-0 overflow-hidden">
+      {/* Global Map Display */}
+      {!isLoading && !loadError && (
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="w-full bg-surface/50 border border-border rounded-[2rem] p-4 md:p-6 shadow-xl transition-all duration-300 relative overflow-hidden"
+        >
+          <div className="mb-4 flex items-center gap-2 px-2">
+            <Globe className="text-primary" size={24} />
+            <div>
+              <h3 className="text-xl font-bold text-foreground font-serif leading-tight">Geospatial Distribution</h3>
+              <p className="text-xs font-medium text-muted-foreground">Interactive map mapping {filtered.length} visible proposals in {user?.state}</p>
+            </div>
+          </div>
+          
+          <div className="rounded-xl overflow-hidden shadow-inner border border-border bg-background/50">
+            <ProposalMapVisualization className="w-full h-[600px]" proposals={filtered} role="state" showListOverlay={true} />
+          </div>
+        </motion.div>
+      )}
+
+      <div className="flex items-center justify-between mt-4">
+         <h3 className="text-xl font-bold text-foreground px-2">Detailed Application Registry</h3>
+      </div>
+
+      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="gov-card p-0 overflow-hidden mt-4">
         <div className="overflow-x-auto">
           <table className="w-full text-sm text-left">
             <thead className="text-xs text-muted-foreground uppercase bg-muted/30">
