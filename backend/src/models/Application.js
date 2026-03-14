@@ -133,6 +133,15 @@ const applicationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "MoM",
     },
+
+    isLocked: {
+      type: Boolean,
+      default: false,
+    },
+
+    lockedAt: {
+      type: Date,
+    },
     
     // Legal Compliance
     affidavitAccepted: {
