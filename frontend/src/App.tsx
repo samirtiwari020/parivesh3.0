@@ -129,6 +129,7 @@ const App = () => (
                 <Route path="employees" element={<ComingSoon label="Employee Management" />} />
                 <Route path="reports" element={<ComingSoon label="Admin Reports" />} />
                 <Route path="logs" element={<SystemLogs />} />
+                <Route path="notifications" element={<Notifications />} />
                 <Route path="settings" element={<Settings />} />
               </Route>
             </Route>
