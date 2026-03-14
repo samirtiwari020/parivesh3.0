@@ -108,6 +108,14 @@ const applicationSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "EDS",
     },
+    
+    // EDS Workflow Internal Tracking
+    edsDetails: {
+      isRaised: { type: Boolean, default: false },
+      queries: [{ type: String }],
+      raisedAt: { type: Date },
+      resolvedAt: { type: Date }
+    },
 
     // Meeting reference
     meetingId: {
@@ -124,6 +132,12 @@ const applicationSchema = new mongoose.Schema(
     momId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "MoM",
+    },
+    
+    // Legal Compliance
+    affidavitAccepted: {
+      type: Boolean,
+      default: false,
     },
 
     // Documents uploaded

@@ -376,3 +376,128 @@ exports.reviewApplication = async (req, res) => {
     });
   }
 };
+
+// Raise EDS (Essential Document Shortcomings)
+exports.raiseEDS = async (req, res) => {
+  try {
+    const { queries } = req.body; // Array of missing document strings
+    
+    if (!queries || !Array.isArray(queries) || queries.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "EDS queries must be provided as a non-empty array of strings",
+      });
+    }
+
+    const application = await Application.findById(req.params.id);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    application.status = "EDS_RAISED";
+    application.edsDetails = {
+      isRaised: true,
+      queries: queries,
+      raisedAt: new Date(),
+    };
+
+    application.history.push({
+      status: "EDS_RAISED",
+      updatedBy: req.user._id,
+      remarks: `EDS Raised for ${queries.length} missing items.`,
+    });
+
+    await application.save();
+
+    await createActivityLog({
+      userId: req.user._id,
+      action: "EDS_RAISED",
+      description: `EDS Raised on application: ${application.projectName}`,
+      referenceId: application._id,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "EDS raised successfully",
+      application,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to raise EDS",
+      error: error.message,
+    });
+  }
+};
+
+// Resolve EDS (Essential Document Shortcomings)
+exports.resolveEDS = async (req, res) => {
+  try {
+    const { remarks } = req.body;
+    
+    const application = await Application.findById(req.params.id);
+
+    if (!application) {
+      return res.status(404).json({
+        success: false,
+        message: "Application not found",
+      });
+    }
+
+    if (
+      isApplicant(req.user) &&
+      application.applicant.toString() !== req.user._id.toString()
+    ) {
+      return res.status(403).json({
+        success: false,
+        message: "Access denied",
+      });
+    }
+
+    if (application.status !== "EDS_RAISED") {
+      return res.status(400).json({
+        success: false,
+        message: "Application is not in EDS_RAISED status",
+      });
+    }
+
+    application.status = "RESUBMITTED";
+    
+    // Mark EDS as resolved
+    if (application.edsDetails) {
+      application.edsDetails.isRaised = false;
+      application.edsDetails.resolvedAt = new Date();
+    }
+
+    application.history.push({
+      status: "RESUBMITTED",
+      updatedBy: req.user._id,
+      remarks: remarks || "Applicant has uploaded missing documents to resolve EDS.",
+    });
+
+    await application.save();
+
+    await createActivityLog({
+      userId: req.user._id,
+      action: "EDS_RESOLVED",
+      description: `EDS resolved and application resubmitted: ${application.projectName}`,
+      referenceId: application._id,
+    });
+
+    res.status(200).json({
+      success: true,
+      message: "EDS resolved successfully",
+      application,
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: "Failed to resolve EDS",
+      error: error.message,
+    });
+  }
+};

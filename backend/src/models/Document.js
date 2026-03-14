@@ -25,15 +25,6 @@ const documentSchema = new mongoose.Schema(
 
     documentType: {
       type: String,
-      enum: [
-        "EIA_REPORT",
-        "FEASIBILITY_REPORT",
-        "MAP",
-        "COMPLIANCE_REPORT",
-        "ADDITIONAL_DOCUMENT",
-        "MOM_DOCUMENT",
-        "GIST_DOCUMENT"
-      ],
       required: true,
     },
 
