@@ -32,7 +32,7 @@ const statusMap: Record<string, ApplicationStatus> = {
   DRAFT: 'Pending',
   SUBMITTED: 'Submitted',
   UNDER_SCRUTINY: 'Under Review',
-  EDS_RAISED: 'Under Review',
+  EDS_RAISED: 'Clarification Requested',
   RESUBMITTED: 'Under Review',
   REFERRED_TO_MEETING: 'Committee Review',
   IN_MEETING: 'Committee Review',

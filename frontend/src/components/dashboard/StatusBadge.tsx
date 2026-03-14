@@ -12,6 +12,7 @@ const statusStyles: Record<string, string> = {
   'Submitted': 'bg-muted text-muted-foreground',
   'Recommended': 'gov-status-approved',
   'Pending': 'gov-status-pending',
+  'Clarification Requested': 'gov-status-pending',
 };
 
 export default function StatusBadge({ status }: StatusBadgeProps) {

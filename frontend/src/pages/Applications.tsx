@@ -155,7 +155,7 @@ export default function Applications() {
                       <td className="px-6 py-5"><StatusBadge status={app.status} /></td>
                       <td className="px-6 py-5 text-right">
                         <Link 
-                          to={`/applicant/applications`} 
+                          to={`/applicant/applications/${app.id}`} 
                           className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-emerald-50 hover:bg-emerald-600 border border-emerald-100 hover:border-emerald-600 text-emerald-700 hover:text-white rounded-xl font-bold transition-all shadow-sm hover:shadow-lg shadow-emerald-600/20 group/btn"
                         >
                           View

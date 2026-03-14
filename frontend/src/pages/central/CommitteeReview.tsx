@@ -20,6 +20,16 @@ export default function CommitteeReview() {
       return;
     }
 
+    let remarks: string | undefined;
+    if (action === 'SEND_BACK') {
+      const comment = window.prompt('Enter clarification comment for applicant:');
+      if (!comment || !comment.trim()) {
+        setActionError('Clarification comment is required.');
+        return;
+      }
+      remarks = comment.trim();
+    }
+
     setActionError('');
     setActionLoadingId(applicationId);
 
@@ -27,7 +37,7 @@ export default function CommitteeReview() {
       await apiRequest(`/api/applications/${applicationId}/review`, {
         method: 'POST',
         token,
-        body: JSON.stringify({ action }),
+        body: JSON.stringify({ action, remarks }),
       });
       await refetch();
     } catch (error) {
