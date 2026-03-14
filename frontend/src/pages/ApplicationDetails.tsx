@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { ArrowLeft, Building, Calendar, MapPin, Download } from 'lucide-react';
+import { ArrowLeft, Building, Calendar, MapPin, Download, AlertTriangle, UploadCloud, Eye } from 'lucide-react';
 import StatusBadge from '@/components/dashboard/StatusBadge';
 import StatusTimeline from '@/components/dashboard/StatusTimeline';
+import FileUploader from '@/components/forms/FileUploader';
+import { EDS_CHECKLIST } from '@/data/projectChecklists';
 import { apiRequest, API_BASE_URL } from '@/lib/api';
 import type { ApplicationStatus } from '@/types';
 
@@ -38,6 +40,12 @@ interface BackendApplication {
     name?: string;
     email?: string;
     organization?: string;
+  };
+  edsDetails?: {
+    isRaised: boolean;
+    queries: string[];
+    raisedAt: string;
+    resolvedAt?: string;
   };
   documents?: BackendDocument[];
   history?: BackendHistoryItem[];
@@ -83,6 +91,9 @@ export default function ApplicationDetails() {
   const [isSavingChanges, setIsSavingChanges] = useState(false);
   const [saveError, setSaveError] = useState('');
   const [saveSuccess, setSaveSuccess] = useState('');
+  const [edsSelectedQueries, setEdsSelectedQueries] = useState<string[]>([]);
+  const [edsFiles, setEdsFiles] = useState<Record<string, File[]>>({});
+  const [isResolvingEDS, setIsResolvingEDS] = useState(false);
   const [editableFields, setEditableFields] = useState({
     projectName: '',
     projectDescription: '',
@@ -110,7 +121,7 @@ export default function ApplicationDetails() {
       : '/central/applications';
 
   const canForward = section === 'state';
-  const canSendBack = section === 'state' || section === 'central' || section === 'committee';
+  const canSendBack = section === 'state' || section === 'central' || section === 'committee' || section === 'admin';
   const canReview = section === 'state' || section === 'central' || section === 'committee' || section === 'admin';
   const isApplicantSection = section === 'applicant';
   const canRespondToClarification = isApplicantSection && application?.status === 'EDS_RAISED';
@@ -186,6 +197,86 @@ export default function ApplicationDetails() {
     }
   };
 
+  const handleRaiseEDS = async () => {
+    if (!id || !token) return;
+    if (edsSelectedQueries.length === 0) {
+      setActionError('Please select at least one shortcoming to raise an EDS.');
+      return;
+    }
+    setActionError('');
+    setPendingAction('SEND_BACK');
+    try {
+      await apiRequest(`/api/applications/${id}/raise-eds`, {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ queries: edsSelectedQueries }),
+      });
+      setEdsSelectedQueries([]);
+      await loadApplication();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : 'Failed to raise EDS');
+    } finally {
+      setPendingAction(null);
+    }
+  };
+
+  const uploadEdsDocument = async (file: File, documentType: string) => {
+    const formData = new FormData();
+    formData.append('document', file);
+    formData.append('documentType', documentType);
+    formData.append('documentName', file.name);
+    formData.append('applicationId', id as string);
+
+    const response = await fetch(`${API_BASE_URL}/api/documents/upload`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+    if (!response.ok) throw new Error('Failed to upload document');
+    return response.json();
+  };
+
+  const handleResolveEDS = async () => {
+    if (!id || !token) return;
+    setSaveError('');
+
+    // Validation for EDS documents
+    const queries = application?.edsDetails?.queries || [];
+    const missingDocs = queries.filter(q => !edsFiles[q] || edsFiles[q].length === 0);
+
+    if (missingDocs.length > 0) {
+      setSaveError(`Please upload all requested documents to resolve EDS: ${missingDocs.join(', ')}`);
+      return;
+    }
+
+    setIsResolvingEDS(true);
+    try {
+      const uploadTasks = Object.entries(edsFiles).flatMap(([docType, files]) => 
+        files.map(file => uploadEdsDocument(file, docType))
+      );
+      if (uploadTasks.length > 0) {
+        await Promise.all(uploadTasks);
+      }
+      
+      await apiRequest(`/api/applications/${id}/resolve-eds`, {
+        method: 'POST',
+        token,
+        body: JSON.stringify({ remarks: applicantRemark.trim() || 'EDS documents uploaded by applicant.' }),
+      });
+      
+      setApplicantRemark('');
+      setEdsFiles({});
+      setSaveSuccess('EDS Resolved successfully.');
+      await loadApplication();
+    } catch (error) {
+      setSaveError(error instanceof Error ? error.message : 'Failed to resolve EDS');
+    } finally {
+      setIsResolvingEDS(false);
+    }
+  };
+
   const handleApplicantUpdate = async () => {
     if (!id || !token) return;
 
@@ -224,6 +315,30 @@ export default function ApplicationDetails() {
       setSaveError(error instanceof Error ? error.message : 'Failed to update application');
     } finally {
       setIsSavingChanges(false);
+    }
+  };
+
+  const handleViewDocument = async (documentId: string) => {
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/documents/download/${documentId}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch document');
+      }
+      
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      // Intentionally not revoking object URL immediately so the new tab can read it
+    } catch (error) {
+      console.error('Error viewing document', error);
+      alert('Error viewing document. It may have been removed or unavailable.');
     }
   };
 
@@ -390,13 +505,22 @@ export default function ApplicationDetails() {
                     <span className="block text-sm font-medium">{document.documentName}</span>
                     <span className="block text-xs text-muted-foreground mt-0.5">{document.documentType}</span>
                   </div>
-                  <button
-                    onClick={() => handleDownloadDocument(document._id, document.documentName)}
-                    title="Download document"
-                    className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer shrink-0"
-                  >
-                    <Download size={18} />
-                  </button>
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      onClick={() => handleViewDocument(document._id)}
+                      title="View document in new tab"
+                      className="p-2 text-primary hover:text-primary-foreground hover:bg-primary rounded-lg transition-colors cursor-pointer"
+                    >
+                      <Eye size={18} />
+                    </button>
+                    <button
+                      onClick={() => handleDownloadDocument(document._id, document.documentName)}
+                      title="Download document"
+                      className="p-2 text-muted-foreground hover:text-primary hover:bg-primary/10 rounded-lg transition-colors cursor-pointer"
+                    >
+                      <Download size={18} />
+                    </button>
+                  </div>
                 </div>
               )) : (
                 <p className="text-sm text-muted-foreground">No documents uploaded.</p>
@@ -427,26 +551,70 @@ export default function ApplicationDetails() {
 
         {isApplicantSection ? (
           <div className="mt-8 pt-6 border-t border-border space-y-3">
-            {canRespondToClarification && (
+            {canRespondToClarification && application?.edsDetails?.isRaised ? (
+              <div className="space-y-6">
+                <div className="bg-orange-50 p-6 rounded-2xl border border-orange-200">
+                  <div className="flex items-center gap-3 text-orange-800 mb-4">
+                     <AlertTriangle size={24} />
+                     <h3 className="text-lg font-bold">EDS Raised: Action Required</h3>
+                  </div>
+                  <p className="text-sm text-orange-900/80 mb-6">Officers have requested the following documents or clarifications. Please upload the required files to proceed.</p>
+                  
+                  <div className="space-y-4 mb-6">
+                     {application.edsDetails.queries.map(query => (
+                       <div key={query} className="bg-white p-4 rounded-xl border border-orange-100 shadow-sm">
+                          <p className="font-semibold text-slate-800 mb-3 text-sm">{query}</p>
+                          <FileUploader 
+                            label={`Upload required file...`} 
+                            accept=".pdf,.jpg,.png" 
+                            onFilesChange={(files) => setEdsFiles(prev => ({...prev, [query]: files}))}
+                          />
+                       </div>
+                     ))}
+                  </div>
+
+                  <h3 className="text-sm font-semibold text-slate-800 mt-2">Clarification Remarks</h3>
+                  <textarea
+                    value={applicantRemark}
+                    onChange={(event) => setApplicantRemark(event.target.value)}
+                    rows={3}
+                    placeholder="Describe how you have resolved the shortcomings..."
+                    className="w-full gov-input bg-white mt-1 mb-4"
+                  />
+                  
+                  <button
+                    onClick={handleResolveEDS}
+                    disabled={isResolvingEDS}
+                    className="flex w-full sm:w-auto items-center justify-center gap-2 px-6 py-3 font-bold rounded-xl bg-gradient-to-r from-orange-500 to-rose-500 text-white hover:opacity-90 shadow-lg shadow-orange-500/20 transition-all disabled:opacity-50"
+                  >
+                    {isResolvingEDS ? 'Resolving...' : <><UploadCloud size={18} /> Resolve EDS & Resubmit</>}
+                  </button>
+                </div>
+              </div>
+            ) : (
               <>
-                <h3 className="text-sm font-semibold">Clarification Response</h3>
-                <p className="text-xs text-muted-foreground">Update your application fields and mention what you changed based on reviewer comments.</p>
-                <textarea
-                  value={applicantRemark}
-                  onChange={(event) => setApplicantRemark(event.target.value)}
-                  rows={3}
-                  placeholder="Describe the corrections/clarifications you have made..."
-                  className="w-full gov-input"
-                />
+                {canRespondToClarification && (
+                  <>
+                    <h3 className="text-sm font-semibold">Clarification Response</h3>
+                    <p className="text-xs text-muted-foreground">Update your application fields and mention what you changed based on reviewer comments.</p>
+                    <textarea
+                      value={applicantRemark}
+                      onChange={(event) => setApplicantRemark(event.target.value)}
+                      rows={3}
+                      placeholder="Describe the corrections/clarifications you have made..."
+                      className="w-full gov-input"
+                    />
+                  </>
+                )}
+                <button
+                  onClick={handleApplicantUpdate}
+                  disabled={isSavingChanges}
+                  className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
+                >
+                  {isSavingChanges ? 'Saving...' : canRespondToClarification ? 'Save Changes & Resubmit' : 'Save Changes'}
+                </button>
               </>
             )}
-            <button
-              onClick={handleApplicantUpdate}
-              disabled={isSavingChanges}
-              className="px-4 py-2 text-sm font-medium rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors disabled:opacity-50"
-            >
-              {isSavingChanges ? 'Saving...' : canRespondToClarification ? 'Save Changes & Resubmit' : 'Save Changes'}
-            </button>
             {saveError && <p className="text-xs text-destructive">{saveError}</p>}
             {saveSuccess && <p className="text-xs text-accent">{saveSuccess}</p>}
           </div>
@@ -454,15 +622,29 @@ export default function ApplicationDetails() {
           <div className="mt-8 pt-6 border-t border-border">
             <h3 className="text-sm font-semibold mb-3">Review Actions</h3>
             {canSendBack && (
-              <div className="mb-3">
-                <label className="block text-xs text-muted-foreground mb-1">Clarification Comment (required for Send Back)</label>
-                <textarea
-                  value={clarificationComment}
-                  onChange={(event) => setClarificationComment(event.target.value)}
-                  rows={3}
-                  placeholder="Describe what needs correction in this application..."
-                  className="w-full gov-input"
-                />
+              <div className="mb-6 p-5 bg-orange-50/60 backdrop-blur-sm rounded-2xl border border-orange-200/60 shadow-inner">
+                <div className="flex items-center gap-2 mb-3 text-orange-800">
+                  <AlertTriangle size={18} />
+                  <h4 className="font-bold">Essential Document Shortcomings (EDS)</h4>
+                </div>
+                <p className="text-sm text-orange-900/70 mb-4 font-medium">Select the missing documents or shortcomings to request clarification from the applicant.</p>
+                
+                <div className="space-y-3 mb-4 max-h-[30vh] overflow-y-auto pr-2" style={{scrollbarWidth: 'thin', scrollbarColor: '#fdba74 transparent'}}>
+                  {EDS_CHECKLIST.map((issueLabel) => (
+                    <label key={issueLabel} className={`flex items-start gap-3 p-3 rounded-xl border-2 cursor-pointer transition-all duration-200 ${edsSelectedQueries.includes(issueLabel) ? 'border-orange-500 bg-orange-100/50 shadow-sm' : 'border-orange-200/50 bg-white hover:border-orange-300 hover:bg-orange-50'}`}>
+                      <input 
+                        type="checkbox" 
+                        className="mt-0.5 rounded text-orange-600 focus:ring-orange-500"
+                        checked={edsSelectedQueries.includes(issueLabel)}
+                        onChange={(e) => {
+                          if (e.target.checked) setEdsSelectedQueries(prev => [...prev, issueLabel]);
+                          else setEdsSelectedQueries(prev => prev.filter(q => q !== issueLabel));
+                        }}
+                      />
+                      <span className={`text-sm font-medium leading-tight ${edsSelectedQueries.includes(issueLabel) ? 'text-orange-900' : 'text-slate-700'}`}>{issueLabel}</span>
+                    </label>
+                  ))}
+                </div>
               </div>
             )}
             <div className="flex flex-wrap gap-2">
@@ -491,11 +673,11 @@ export default function ApplicationDetails() {
               )}
               {canSendBack && (
                 <button
-                  onClick={() => takeAction('SEND_BACK')}
-                  disabled={pendingAction !== null}
-                  className="px-3 py-1 text-xs font-medium rounded-lg bg-status-pending/10 text-status-pending hover:bg-status-pending/20 transition-colors disabled:opacity-50"
+                  onClick={handleRaiseEDS}
+                  disabled={pendingAction !== null || edsSelectedQueries.length === 0}
+                  className="px-4 py-2 text-xs font-semibold rounded-xl bg-orange-100 text-orange-700 hover:bg-orange-200 transition-colors disabled:opacity-50 flex items-center gap-1.5 shadow-sm"
                 >
-                  Send Back
+                  <AlertTriangle size={15} /> Raise EDS with Applicant
                 </button>
               )}
             </div>

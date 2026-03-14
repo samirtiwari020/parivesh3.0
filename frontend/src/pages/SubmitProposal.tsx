@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -8,6 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import FileUploader from '@/components/forms/FileUploader';
 import { indianStates, sectors } from '@/data/mockData';
 import { API_BASE_URL, apiRequest } from '@/lib/api';
+import { PROJECT_CATEGORIES, CHECKLIST_REQUIREMENTS, AFFIDAVIT_POINTS } from '@/data/projectChecklists';
 
 const step1Schema = z.object({
   projectName: z.string().min(3, 'Project name is required'),
@@ -23,7 +24,7 @@ const step2Schema = z.object({
   longitude: z.string().min(1, 'Longitude is required'),
 });
 
-const steps = ['Project Details', 'Location', 'Clearance Type', 'Documents', 'Payment', 'Review & Submit'];
+const steps = ['Project Details', 'Location', 'Clearance Type', 'Documents', 'Affidavit', 'Payment', 'Review & Submit'];
 const AUTH_TOKEN_KEY = 'parivesh_auth_token';
 
 const clearanceTypeMap: Record<string, 'EC' | 'FC' | 'WL' | 'CRZ'> = {
@@ -42,7 +43,7 @@ interface CreateApplicationResponse {
 
 const uploadDocument = async (
   file: File,
-  documentType: 'EIA_REPORT' | 'MAP' | 'COMPLIANCE_REPORT',
+  documentType: string,
   applicationId: string,
   token: string
 ) => {
@@ -71,9 +72,8 @@ export default function SubmitProposal() {
   const [currentStep, setCurrentStep] = useState(0);
   const [formData, setFormData] = useState<Record<string, unknown>>({});
   const [selectedClearances, setSelectedClearances] = useState<string[]>([]);
-  const [eiaFiles, setEiaFiles] = useState<File[]>([]);
-  const [mapFiles, setMapFiles] = useState<File[]>([]);
-  const [complianceFiles, setComplianceFiles] = useState<File[]>([]);
+  const [documents, setDocuments] = useState<Record<string, File[]>>({});
+  const [affidavitAccepted, setAffidavitAccepted] = useState(false);
   const [submitError, setSubmitError] = useState('');
   
   // New States
@@ -101,6 +101,17 @@ export default function SubmitProposal() {
       if (!valid) return;
       setFormData(prev => ({ ...prev, ...step2Form.getValues() }));
     } else if (currentStep === 2 && selectedClearances.length === 0) {
+      return;
+    } else if (currentStep === 3) {
+      const currentChecklist = CHECKLIST_REQUIREMENTS[formData.sector as string] || [];
+      const missingDocs = currentChecklist.filter(docLabel => !documents[docLabel] || documents[docLabel].length === 0);
+      
+      if (missingDocs.length > 0) {
+        setSubmitError(`Please upload all required documents: ${missingDocs.join(', ')}`);
+        return;
+      }
+      setSubmitError('');
+    } else if (currentStep === 4 && !affidavitAccepted) {
       return;
     }
     setCurrentStep(prev => Math.min(prev + 1, steps.length - 1));
@@ -147,11 +158,9 @@ export default function SubmitProposal() {
         setCreatedApplicationId(appId);
 
         // 2. Upload Documents concurrently
-        const uploadTasks = [
-          ...eiaFiles.map((file) => uploadDocument(file, 'EIA_REPORT', appId as string, token)),
-          ...mapFiles.map((file) => uploadDocument(file, 'MAP', appId as string, token)),
-          ...complianceFiles.map((file) => uploadDocument(file, 'COMPLIANCE_REPORT', appId as string, token)),
-        ];
+        const uploadTasks = Object.entries(documents).flatMap(([docType, files]) => 
+          files.map((file) => uploadDocument(file, docType, appId as string, token))
+        );
         await Promise.all(uploadTasks);
       }
 
@@ -179,8 +188,9 @@ export default function SubmitProposal() {
   };
 
   const completeMockPayment = async () => {
-    if (!transactionId || transactionId.length < 5) {
-      setSubmitError('Please enter a valid Transaction ID.');
+    // Check if transactionId contains exactly 12 digits using a regular expression
+    if (!transactionId || !/^\d{12}$/.test(transactionId)) {
+      setSubmitError('Please enter a valid 12-digit numeric Transaction ID (UTR).');
       return;
     }
 
@@ -207,7 +217,7 @@ export default function SubmitProposal() {
       setTimeout(() => {
         setShowPaymentModal(false);
         setPaymentProcessed(true);
-        setCurrentStep(5); // Move to Review & Submit
+        setCurrentStep(6); // Move to Review & Submit
       }, 1500);
 
     } catch (error) {
@@ -370,7 +380,7 @@ export default function SubmitProposal() {
                           className="w-full bg-white/50 border border-emerald-100 rounded-xl px-4 py-3 text-emerald-950 focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 transition-all shadow-sm font-medium"
                         >
                           <option value="">Select Sector</option>
-                          {sectors.map(s => <option key={s} value={s}>{s}</option>)}
+                          {PROJECT_CATEGORIES.map(s => <option key={s} value={s}>{s}</option>)}
                         </select>
                         {step1Form.formState.errors.sector && <p className="text-xs text-rose-500 font-medium mt-1.5 ml-1">{step1Form.formState.errors.sector.message as string}</p>}
                       </div>
@@ -488,23 +498,80 @@ export default function SubmitProposal() {
                 {currentStep === 3 && (
                   <div className="space-y-6">
                     <h3 className="text-2xl font-bold text-emerald-950 mb-2">Upload Documents</h3>
-                    <p className="text-emerald-800/60 font-medium mb-6">Provide the necessary documentation supporting your application.</p>
+                    <p className="text-emerald-800/60 font-medium mb-6">Provide the mandatory documentation supporting your <span className="font-bold text-emerald-900">{formData.sector as string}</span> application.</p>
                     
-                    <div className="space-y-4">
-                      <div className="p-4 bg-white/50 rounded-2xl border border-emerald-100">
-                        <FileUploader label="EIA Report" accept=".pdf" onFilesChange={setEiaFiles} />
+                    {submitError && (
+                      <div className="p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm font-semibold">
+                        {submitError}
                       </div>
-                      <div className="p-4 bg-white/50 rounded-2xl border border-emerald-100">
-                        <FileUploader label="Project Map" accept=".pdf,.jpg,.png" onFilesChange={setMapFiles} />
-                      </div>
-                      <div className="p-4 bg-white/50 rounded-2xl border border-emerald-100">
-                        <FileUploader label="Compliance Documents" onFilesChange={setComplianceFiles} />
-                      </div>
+                    )}
+
+                    <div className="space-y-4 max-h-[50vh] overflow-y-auto pr-3 rounded-2xl p-1" style={{scrollbarWidth: 'thin', scrollbarColor: '#10b981 transparent'}}>
+                      {CHECKLIST_REQUIREMENTS[formData.sector as string] ? (
+                        CHECKLIST_REQUIREMENTS[formData.sector as string].map((docLabel) => (
+                          <div key={docLabel} className={`p-4 bg-white/50 rounded-2xl border transition-shadow hover:shadow-md ${(!documents[docLabel] || documents[docLabel].length === 0) ? 'border-emerald-100' : 'border-emerald-400 bg-emerald-50/50'}`}>
+                            <div className="flex justify-between items-center mb-2">
+                              <span className="font-semibold text-emerald-900 line-clamp-1">{docLabel} <span className="text-red-500 font-black">*</span></span>
+                              {documents[docLabel] && documents[docLabel].length > 0 && <span className="text-xs bg-emerald-500 text-white px-2 py-0.5 rounded-full font-bold shadow-sm">Uploaded</span>}
+                            </div>
+                            <FileUploader 
+                              label={`Upload`}
+                              accept=".pdf,.jpg,.png" 
+                              onFilesChange={(files) => setDocuments(prev => ({...prev, [docLabel]: files}))} 
+                            />
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-center text-emerald-900/40 font-medium py-10">Please select a Project Sector in Step 1 to generate the checklist.</p>
+                      )}
                     </div>
                   </div>
                 )}
 
                 {currentStep === 4 && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4 mb-6">
+                       <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
+                         <ShieldCheck size={24} />
+                       </div>
+                       <div>
+                         <h3 className="text-2xl font-bold text-emerald-950">Declaration Affidavit</h3>
+                         <p className="text-emerald-800/60 font-medium">Please read and strictly abide by these conditions.</p>
+                       </div>
+                    </div>
+                    
+                    <div className="bg-white/80 p-6 rounded-2xl border border-emerald-200 shadow-inner overflow-y-auto max-h-[40vh] space-y-4 text-sm font-medium text-emerald-900/80 leading-relaxed custom-scrollbar" style={{scrollbarWidth: 'thin', scrollbarColor: '#10b981 transparent'}}>
+                      {AFFIDAVIT_POINTS[formData.sector as string] ? (
+                        <ul className="list-decimal pl-5 space-y-3">
+                          {AFFIDAVIT_POINTS[formData.sector as string].map((point, idx) => (
+                             <li key={idx} className="pl-2">{point}</li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-center text-emerald-900/40">Please select a Project Sector in Step 1 to view the corresponding affidavit.</p>
+                      )}
+                    </div>
+
+                    <label className={`flex items-start gap-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-300 ${affidavitAccepted ? 'border-emerald-500 bg-emerald-50/80 shadow-md shadow-emerald-500/10' : 'border-emerald-200 bg-emerald-50/50 hover:bg-emerald-50'}`}>
+                        <div className={`w-6 h-6 rounded border-2 flex shrink-0 items-center justify-center mt-0.5 transition-colors ${
+                             affidavitAccepted ? 'bg-emerald-500 border-emerald-500 text-white' : 'border-emerald-300 bg-white'
+                          }`}>
+                            {affidavitAccepted && <Check size={14} strokeWidth={3} />}
+                        </div>
+                        <input 
+                            type="checkbox" 
+                            checked={affidavitAccepted} 
+                            onChange={(e) => setAffidavitAccepted(e.target.checked)} 
+                            className="hidden" 
+                        />
+                        <span className={`font-bold leading-tight ${affidavitAccepted ? 'text-emerald-900' : 'text-emerald-950/70'}`}>
+                            I solemnly affirm and declare that I have read, understood, and accept all the above conditions and regulations. I understand that any violation may result in immediate revocation of clearances and legal action.
+                        </span>
+                    </label>
+                  </div>
+                )}
+
+                {currentStep === 5 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 mb-8">
                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
@@ -542,7 +609,7 @@ export default function SubmitProposal() {
                   </div>
                 )}
 
-                {currentStep === 5 && (
+                {currentStep === 6 && (
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 mb-8">
                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
@@ -560,24 +627,24 @@ export default function SubmitProposal() {
                       
                       <div className="space-y-4 relative z-10">
                         {(() => {
-                          const totalUploadedFiles = eiaFiles.length + mapFiles.length + complianceFiles.length;
-                          const uploadedFilesSummary = totalUploadedFiles > 0
-                            ? `${totalUploadedFiles} files (EIA: ${eiaFiles.length}, Map: ${mapFiles.length}, Compliance: ${complianceFiles.length})`
+                          const totalUploadedFiles = Object.values(documents).flat().length;
+                          const uploadedDocsSummary = totalUploadedFiles > 0
+                            ? `${totalUploadedFiles} files uploaded across ${Object.keys(documents).filter(k => documents[k].length > 0).length} categories`
                             : '0 files';
 
                           return [
                             ['Project Name', formData.projectName],
                             ['Sector', formData.sector],
-                            ['Category', formData.category],
                             ['Estimated Cost', `₹${formData.estimatedCost} Cr`],
                             ['State', formData.state],
                             ['District', formData.district],
                             ['Coordinates', `${formData.latitude}, ${formData.longitude}`],
                             ['Clearances', selectedClearances.join(', ')],
-                            ['Uploaded Files', uploadedFilesSummary],
+                            ['Uploaded Files', uploadedDocsSummary],
+                            ['Legal Declaration', affidavitAccepted ? 'Affirmed strictly according to regulations ✅' : 'Pending ❌'],
                             ['Payment Status', paymentProcessed ? 'Paid Successfully ✅' : 'Pending ❌'],
                           ];
-                        })().map(([label, value]) => (
+                        })().map(([label, value]: [string, React.ReactNode]) => (
                           <div key={label} className="flex flex-col sm:flex-row justify-between sm:items-center py-3 border-b border-emerald-100/50 last:border-0 gap-1">
                             <span className="text-sm font-bold text-emerald-900/60 w-1/3">{label}</span>
                             <span className="text-base font-bold text-emerald-950 sm:text-right w-full sm:w-2/3">{value || '—'}</span>
@@ -595,9 +662,9 @@ export default function SubmitProposal() {
           <div className="bg-emerald-50/50 px-8 py-6 border-t border-emerald-100/60 flex items-center justify-between mt-auto">
             <button 
               onClick={prevStep} 
-              disabled={currentStep === 0 || currentStep === 5 || isProcessingPayment || paymentProcessed} 
+              disabled={currentStep === 0 || currentStep === 6 || isProcessingPayment || paymentProcessed} 
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
-                (currentStep === 0 || currentStep === 5 || isProcessingPayment || paymentProcessed)
+                (currentStep === 0 || currentStep === 6 || isProcessingPayment || paymentProcessed)
                   ? 'opacity-0 pointer-events-none' 
                   : 'bg-white text-emerald-700 hover:bg-emerald-50 hover:shadow-md border border-emerald-200 hover:-translate-y-0.5'
               }`}
@@ -605,7 +672,7 @@ export default function SubmitProposal() {
               <ArrowLeft size={18} /> Back
             </button>
             
-            {currentStep === 4 ? (
+            {currentStep === 5 ? (
               <div className="ml-auto text-sm text-emerald-600/60 font-medium flex items-center gap-2">
                 <ShieldCheck size={16} /> Secure checkout process
               </div>
