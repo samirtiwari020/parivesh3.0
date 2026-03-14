@@ -3,7 +3,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, ArrowRight, Check, Send, FileText } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, Send, FileText, CreditCard, ShieldCheck, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import FileUploader from '@/components/forms/FileUploader';
 import { indianStates, sectors } from '@/data/mockData';
@@ -23,7 +23,7 @@ const step2Schema = z.object({
   longitude: z.string().min(1, 'Longitude is required'),
 });
 
-const steps = ['Project Details', 'Location', 'Clearance Type', 'Documents', 'Review & Submit'];
+const steps = ['Project Details', 'Location', 'Clearance Type', 'Documents', 'Payment', 'Review & Submit'];
 const AUTH_TOKEN_KEY = 'parivesh_auth_token';
 
 const clearanceTypeMap: Record<string, 'EC' | 'FC' | 'WL' | 'CRZ'> = {
@@ -75,7 +75,17 @@ export default function SubmitProposal() {
   const [mapFiles, setMapFiles] = useState<File[]>([]);
   const [complianceFiles, setComplianceFiles] = useState<File[]>([]);
   const [submitError, setSubmitError] = useState('');
+  
+  // New States
+  const [createdApplicationId, setCreatedApplicationId] = useState<string | null>(null);
+  const [paymentProcessed, setPaymentProcessed] = useState(false);
+  const [isProcessingPayment, setIsProcessingPayment] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentGatewayStatus, setPaymentGatewayStatus] = useState<'IDLE' | 'PROCESSING' | 'SUCCESS' | 'FAILED'>('IDLE');
+  const [currentPaymentData, setCurrentPaymentData] = useState<any>(null);
+  const [transactionId, setTransactionId] = useState('');
+  
   const navigate = useNavigate();
 
   const step1Form = useForm({ resolver: zodResolver(step1Schema), defaultValues: formData });
@@ -98,59 +108,133 @@ export default function SubmitProposal() {
 
   const prevStep = () => setCurrentStep(prev => Math.max(prev - 1, 0));
 
-  const handleSubmit = async () => {
+  const handlePaymentInitiation = async () => {
+    setIsProcessingPayment(true);
     setSubmitError('');
+    try {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (!token) throw new Error('Please sign in again.');
 
-    const clearanceLabel = selectedClearances[0];
-    const clearanceType = clearanceTypeMap[clearanceLabel];
+      let appId = createdApplicationId;
 
-    if (!clearanceType) {
-      setSubmitError('Select at least one valid clearance type.');
+      // 1. Create Application Draft if not already created
+      if (!appId) {
+        const clearanceLabel = selectedClearances[0];
+        const clearanceType = clearanceTypeMap[clearanceLabel];
+        
+        const payload = {
+          projectName: formData.projectName,
+          sector: formData.sector,
+          category: formData.category,
+          clearanceType,
+          state: formData.state,
+          district: formData.district,
+          coordinates: {
+            latitude: Number(formData.latitude),
+            longitude: Number(formData.longitude),
+          },
+          projectCost: Number(formData.estimatedCost),
+          projectDescription: `Selected clearances: ${selectedClearances.join(', ')}`,
+        };
+
+        const createResponse = await apiRequest<CreateApplicationResponse>('/api/applications', {
+          method: 'POST',
+          token,
+          body: JSON.stringify(payload),
+        });
+
+        appId = createResponse.application._id;
+        setCreatedApplicationId(appId);
+
+        // 2. Upload Documents concurrently
+        const uploadTasks = [
+          ...eiaFiles.map((file) => uploadDocument(file, 'EIA_REPORT', appId as string, token)),
+          ...mapFiles.map((file) => uploadDocument(file, 'MAP', appId as string, token)),
+          ...complianceFiles.map((file) => uploadDocument(file, 'COMPLIANCE_REPORT', appId as string, token)),
+        ];
+        await Promise.all(uploadTasks);
+      }
+
+      // 3. Create Payment
+      const paymentAmount = 5000; // Mock fee amount
+      const paymentResponse = await apiRequest<any>('/api/payments/create', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({
+          applicationId: appId,
+          amount: paymentAmount
+        })
+      });
+
+      setCurrentPaymentData(paymentResponse);
+      setShowPaymentModal(true);
+      setPaymentGatewayStatus('IDLE');
+
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'Payment initialization failed.');
+    } finally {
+      setIsProcessingPayment(false);
+    }
+  };
+
+  const completeMockPayment = async () => {
+    if (!transactionId || transactionId.length < 5) {
+      setSubmitError('Please enter a valid Transaction ID.');
       return;
     }
 
-    const token = localStorage.getItem(AUTH_TOKEN_KEY);
+    setPaymentGatewayStatus('PROCESSING');
+    
+    try {
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      
+      // Simulate real gateway processing time
+      await new Promise(resolve => setTimeout(resolve, 2500));
 
-    if (!token) {
-      setSubmitError('Please sign in again to submit the application.');
+      // 4. Verify Payment with Backend
+      await apiRequest('/api/payments/verify', {
+        method: 'POST',
+        token,
+        body: JSON.stringify({
+          paymentId: currentPaymentData.payment._id,
+          transactionId: transactionId
+        })
+      });
+
+      setPaymentGatewayStatus('SUCCESS');
+      
+      setTimeout(() => {
+        setShowPaymentModal(false);
+        setPaymentProcessed(true);
+        setCurrentStep(5); // Move to Review & Submit
+      }, 1500);
+
+    } catch (error) {
+      setPaymentGatewayStatus('FAILED');
+      setTimeout(() => {
+        setShowPaymentModal(false);
+        setSubmitError(error instanceof Error ? error.message : 'Payment verification failed.');
+      }, 2000);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!createdApplicationId || !paymentProcessed) {
+      setSubmitError('Application must be created and payment processed first.');
       return;
     }
 
+    setSubmitError('');
     setIsSubmitting(true);
 
     try {
-      const payload = {
-        projectName: formData.projectName,
-        sector: formData.sector,
-        category: formData.category,
-        clearanceType,
-        state: formData.state,
-        district: formData.district,
-        coordinates: {
-          latitude: Number(formData.latitude),
-          longitude: Number(formData.longitude),
-        },
-        projectCost: Number(formData.estimatedCost),
-        projectDescription: `Selected clearances: ${selectedClearances.join(', ')}`,
-      };
+      const token = localStorage.getItem(AUTH_TOKEN_KEY);
+      if (!token) {
+        setSubmitError('Please sign in again to submit the application.');
+        return;
+      }
 
-      const createResponse = await apiRequest<CreateApplicationResponse>('/api/applications', {
-        method: 'POST',
-        token,
-        body: JSON.stringify(payload),
-      });
-
-      const applicationId = createResponse.application._id;
-
-      const uploadTasks = [
-        ...eiaFiles.map((file) => uploadDocument(file, 'EIA_REPORT', applicationId, token)),
-        ...mapFiles.map((file) => uploadDocument(file, 'MAP', applicationId, token)),
-        ...complianceFiles.map((file) => uploadDocument(file, 'COMPLIANCE_REPORT', applicationId, token)),
-      ];
-
-      await Promise.all(uploadTasks);
-
-      await apiRequest(`/api/applications/${applicationId}/submit`, {
+      await apiRequest(`/api/applications/${createdApplicationId}/submit`, {
         method: 'POST',
         token,
       });
@@ -176,7 +260,7 @@ export default function SubmitProposal() {
       <div 
         className="absolute inset-0 z-0 opacity-[0.35] pointer-events-none mix-blend-multiply"
         style={{
-          backgroundImage: 'url("https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=1920&q=80")', // Stunning lush green nature scene
+          backgroundImage: 'url("https://images.unsplash.com/photo-1433086966358-54859d0ed716?w=1920&q=80")',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
           backgroundAttachment: 'fixed'
@@ -423,6 +507,44 @@ export default function SubmitProposal() {
                   <div className="space-y-6">
                     <div className="flex items-center gap-4 mb-8">
                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
+                         <CreditCard size={24} />
+                       </div>
+                       <div>
+                         <h3 className="text-2xl font-bold text-emerald-950">Application Fee</h3>
+                         <p className="text-emerald-800/60 font-medium">Complete payment to proceed to final submission.</p>
+                       </div>
+                    </div>
+                    
+                    <div className="bg-white/60 rounded-2xl border border-emerald-100 p-8 text-center relative overflow-hidden">
+                      <ShieldCheck className="absolute -bottom-10 -left-10 w-48 h-48 text-emerald-900/[0.03] rotate-12 pointer-events-none" />
+                      <div className="relative z-10 space-y-6">
+                        <div className="text-5xl font-black text-emerald-950 mb-2">₹5,000</div>
+                        <p className="text-emerald-800/60 font-medium">Standard Application Processing Fee</p>
+                        
+                        <button
+                          onClick={handlePaymentInitiation}
+                          disabled={isProcessingPayment}
+                          className={`w-full max-w-sm mx-auto flex items-center justify-center gap-3 px-8 py-4 rounded-xl font-bold text-lg shadow-lg transition-all ${
+                            isProcessingPayment 
+                              ? 'bg-emerald-400 text-white cursor-wait opacity-80' 
+                              : 'bg-gradient-to-r from-emerald-600 to-teal-500 text-white shadow-emerald-600/30 hover:shadow-emerald-600/40 hover:-translate-y-0.5'
+                          }`}
+                        >
+                          {isProcessingPayment ? (
+                            <><Loader2 className="animate-spin" size={24} /> Processing Secure Payment...</>
+                          ) : (
+                            <><CreditCard size={24} /> Pay Now via Secure Gateway</>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 5 && (
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-4 mb-8">
+                       <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0 shadow-inner">
                          <FileText size={24} />
                        </div>
                        <div>
@@ -452,6 +574,7 @@ export default function SubmitProposal() {
                             ['Coordinates', `${formData.latitude}, ${formData.longitude}`],
                             ['Clearances', selectedClearances.join(', ')],
                             ['Uploaded Files', uploadedFilesSummary],
+                            ['Payment Status', paymentProcessed ? 'Paid Successfully ✅' : 'Pending ❌'],
                           ];
                         })().map(([label, value]) => (
                           <div key={label} className="flex flex-col sm:flex-row justify-between sm:items-center py-3 border-b border-emerald-100/50 last:border-0 gap-1">
@@ -471,9 +594,9 @@ export default function SubmitProposal() {
           <div className="bg-emerald-50/50 px-8 py-6 border-t border-emerald-100/60 flex items-center justify-between mt-auto">
             <button 
               onClick={prevStep} 
-              disabled={currentStep === 0} 
+              disabled={currentStep === 0 || currentStep === 5 || isProcessingPayment || paymentProcessed} 
               className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
-                currentStep === 0 
+                (currentStep === 0 || currentStep === 5 || isProcessingPayment || paymentProcessed)
                   ? 'opacity-0 pointer-events-none' 
                   : 'bg-white text-emerald-700 hover:bg-emerald-50 hover:shadow-md border border-emerald-200 hover:-translate-y-0.5'
               }`}
@@ -481,7 +604,11 @@ export default function SubmitProposal() {
               <ArrowLeft size={18} /> Back
             </button>
             
-            {currentStep < steps.length - 1 ? (
+            {currentStep === 4 ? (
+              <div className="ml-auto text-sm text-emerald-600/60 font-medium flex items-center gap-2">
+                <ShieldCheck size={16} /> Secure checkout process
+              </div>
+            ) : currentStep < steps.length - 1 ? (
               <button 
                 onClick={nextStep} 
                 className="flex items-center gap-2 px-8 py-3 rounded-xl font-bold bg-emerald-600 text-white shadow-lg shadow-emerald-600/20 hover:bg-emerald-700 hover:-translate-y-0.5 transition-all ml-auto"
@@ -519,6 +646,103 @@ export default function SubmitProposal() {
           </motion.div>
         )}
       </div>
+
+      {/* Mock Payment Gateway Modal */}
+      <AnimatePresence>
+        {showPaymentModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-emerald-950/40 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ scale: 0.95, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.95, y: 20 }}
+              className="w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden border border-emerald-100"
+            >
+              <div className="bg-sky-600 p-6 text-white text-center relative overflow-hidden">
+                <ShieldCheck className="absolute -right-4 -top-4 w-24 h-24 text-white/10 rotate-12" />
+                <h3 className="text-xl font-bold relative z-10">Scan & Pay</h3>
+                <p className="text-sky-100/80 text-sm mt-1 relative z-10">Complete your transaction using UPI</p>
+              </div>
+              
+              <div className="p-6 space-y-6">
+                <div className="flex justify-between items-center py-4 border-b border-gray-100">
+                  <span className="text-gray-500 font-medium">Amount to Pay</span>
+                  <span className="text-2xl font-black text-sky-950">₹5,000</span>
+                </div>
+
+                <div className="flex justify-center p-4">
+                  {/* Using the provided QR Code image */}
+                  <img 
+                    src="/qr-code.jpg" 
+                    alt="Scan to Pay" 
+                    className="w-64 h-64 object-contain rounded-xl shadow-sm border border-gray-100"
+                  />
+                </div>
+
+                {paymentGatewayStatus === 'IDLE' && (
+                  <div className="space-y-4">
+                    <p className="text-sm text-gray-500 text-center font-medium">
+                      After a successful transaction, please enter your UPI Reference (UTR) ID below to verify the payment.
+                    </p>
+                    <input 
+                      type="text" 
+                      placeholder="e.g. 129384729182"
+                      className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-sky-500/50 focus:border-sky-500 transition-all font-mono"
+                      value={transactionId}
+                      onChange={(e) => setTransactionId(e.target.value)}
+                    />
+                    <button
+                      onClick={completeMockPayment}
+                      disabled={transactionId.length < 5}
+                      className="w-full py-4 bg-sky-600 text-white rounded-xl font-bold shadow-lg hover:bg-sky-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                    >
+                      Verify Transaction
+                    </button>
+                    <button
+                      onClick={() => setShowPaymentModal(false)}
+                      className="w-full py-2 text-gray-500 font-bold hover:text-gray-700 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
+
+                {paymentGatewayStatus === 'PROCESSING' && (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex flex-col items-center justify-center p-4 text-sky-600 font-bold gap-3">
+                    <Loader2 size={32} className="animate-spin" />
+                    <p>Verifying Transaction {transactionId}...</p>
+                  </motion.div>
+                )}
+
+                {paymentGatewayStatus === 'SUCCESS' && (
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center p-4 text-emerald-500 font-bold gap-3">
+                    <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center">
+                      <Check size={32} strokeWidth={3} />
+                    </div>
+                    <p>Payment Verified Successfully!</p>
+                  </motion.div>
+                )}
+
+                {paymentGatewayStatus === 'FAILED' && (
+                  <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="flex flex-col items-center justify-center p-4 text-rose-500 font-bold gap-3">
+                    <div className="w-16 h-16 bg-rose-100 rounded-full flex items-center justify-center">
+                      <span className="text-2xl">✕</span>
+                    </div>
+                    <p>Verification Failed. Invalid UTR.</p>
+                    <button onClick={() => setPaymentGatewayStatus('IDLE')} className="text-sm underline mt-2 text-gray-500">Try Again</button>
+                  </motion.div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
+
+
