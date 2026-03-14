@@ -17,8 +17,10 @@ export default function CommitteeReviewerLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const currentLabel = sidebarLinks.find((link) => link.path === location.pathname)?.label || 'Committee Review';
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    const confirmed = window.confirm('Are you sure you want to sign out?');
+    if (!confirmed) return;
+    await logout();
     navigate('/');
   };
 
