@@ -40,6 +40,7 @@ import CentralDashboard from "@/pages/central/CentralDashboard";
 import AllApplications from "@/pages/central/AllApplications";
 import CommitteeReview from "@/pages/central/CommitteeReview";
 import CommitteeAllApplications from "@/pages/committee/AllApplications";
+import MoMTeam from "@/pages/committee/MoMTeam";
 import CentralSettings from "@/pages/central/CentralSettings";
 
 // Admin pages
@@ -115,6 +116,7 @@ const App = () => (
             <Route element={<ProtectedRoute allowedRoles={[UserRole.COMMITTEE_REVIEWER]} />}>
               <Route path="/committee" element={<CommitteeReviewerLayout />}>
                 <Route index element={<CommitteeReview />} />
+                <Route path="mom-team" element={<MoMTeam />} />
                 <Route path="applications" element={<CommitteeAllApplications />} />
                 <Route path="applications/:id" element={<ApplicationDetails />} />
                 <Route path="notifications" element={<Notifications />} />
