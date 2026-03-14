@@ -41,7 +41,6 @@ import AllApplications from "@/pages/central/AllApplications";
 import CommitteeReview from "@/pages/central/CommitteeReview";
 import CommitteeAllApplications from "@/pages/committee/AllApplications";
 import CentralSettings from "@/pages/central/CentralSettings";
-import CentralNotifications from "@/pages/central/CentralNotifications";
 
 // Admin pages
 import AdminDashboard from "@/pages/admin/AdminDashboard";
@@ -107,7 +106,7 @@ const App = () => (
                 <Route path="applications" element={<AllApplications />} />
                 <Route path="applications/:id" element={<ApplicationDetails />} />
                 <Route path="reports" element={<ComingSoon label="Central Reports" />} />
-                <Route path="notifications" element={<CentralNotifications />} />
+                <Route path="notifications" element={<Notifications />} />
                 <Route path="settings" element={<CentralSettings />} />
               </Route>
             </Route>

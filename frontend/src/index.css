@@ -125,3 +125,32 @@
     @apply bg-blue-100 text-blue-800;
   }
 }
+
+/* Fix Leaflet map z-index bleeding over sticky headers */
+.leaflet-container {
+  z-index: 10 !important;
+}
+.proposal-popup .leaflet-popup-content-wrapper {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(16, 185, 129, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  padding: 0;
+}
+.proposal-popup .leaflet-popup-content {
+  margin: 12px;
+}
+.proposal-popup .leaflet-popup-tip {
+  background: rgba(255, 255, 255, 0.95);
+}
+.gm-err-title {
+  display: none !important;
+}
+.gm-err-message {
+  display: none !important;
+}
+/* Remove the 'For development purposes only' watermark */
+.gm-style-bg {
+  display: none !important;
+}
