@@ -331,6 +331,44 @@ export default function ApplicationDetails() {
     }
   };
 
+  const handleViewGistPdf = async (gistId: string) => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/gist/${gistId}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to fetch GIST PDF');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+    } catch (error) {
+      console.error('Error viewing GIST PDF', error);
+      alert('Error opening GIST PDF. Please try again.');
+    }
+  };
+
+  const handleDownloadGistPdf = async (gistId: string, projectName: string) => {
+    if (!token) return;
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/gist/${gistId}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!response.ok) throw new Error('Failed to download GIST PDF');
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `GIST_${projectName.replace(/[^a-z0-9_\-\s]/gi, '_').replace(/\s+/g, '_')}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Error downloading GIST PDF', error);
+      alert('Error downloading GIST PDF. Please try again.');
+    }
+  };
+
   const handleViewDocument = async (documentId: string) => {
     if (!token) return;
 
@@ -517,11 +555,33 @@ export default function ApplicationDetails() {
               <>
                 <h2 className="text-lg font-semibold mt-8 mb-4">Auto-generated GIST</h2>
                 {gistSummary ? (
-                  <div className="space-y-3 rounded-xl border border-border bg-muted/30 p-4">
-                    <pre className="whitespace-pre-wrap break-words text-sm text-foreground font-sans leading-6">{gistSummary}</pre>
-                    <div className="text-xs text-muted-foreground border-t border-border pt-3 space-y-1">
-                      <p>Recommendation: {gistRecommendation || '—'}</p>
-                      <p>Last updated: {formatDateTime(gistData?.updatedAt)}</p>
+                  <div className="rounded-xl border border-border bg-muted/30 p-4 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-foreground truncate">{application.projectName} — GIST Report</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Recommendation: <span className="font-medium">{gistRecommendation || '—'}</span>
+                          {' · '}Last updated: {formatDateTime(gistData?.updatedAt)}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0">
+                        <button
+                          onClick={() => handleViewGistPdf(gistData!._id)}
+                          title="View GIST PDF in new tab"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors cursor-pointer"
+                        >
+                          <Eye size={14} />
+                          View PDF
+                        </button>
+                        <button
+                          onClick={() => handleDownloadGistPdf(gistData!._id, application.projectName)}
+                          title="Download GIST PDF"
+                          className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-border text-muted-foreground hover:text-primary hover:border-primary transition-colors cursor-pointer"
+                        >
+                          <Download size={14} />
+                          Download
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ) : application.status === 'REFERRED_TO_MEETING' ? (
