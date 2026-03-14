@@ -1,8 +1,9 @@
 import { motion } from 'framer-motion';
-import { Landmark, BarChart3, Users, FileText, Settings, LogOut, Shield, Activity, Menu, UserCog } from 'lucide-react';
+import { Landmark, BarChart3, Users, FileText, Settings, LogOut, Shield, Activity, Menu, UserCog, Bell } from 'lucide-react';
 import { Link, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useUnreadNotifications } from '@/hooks/useUnreadNotifications';
 
 const adminLinks = [
   { icon: BarChart3, label: 'Dashboard', path: '/admin' },
@@ -11,6 +12,7 @@ const adminLinks = [
   { icon: UserCog, label: 'Employee Mgmt', path: '/admin/employees' },
   { icon: Shield, label: 'Reports', path: '/admin/reports' },
   { icon: Activity, label: 'System Logs', path: '/admin/logs' },
+  { icon: Bell, label: 'Notifications', path: '/admin/notifications' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },
 ];
 
@@ -18,6 +20,7 @@ export default function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { unreadCount } = useUnreadNotifications();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const currentLabel = adminLinks.find(l => l.path === location.pathname)?.label || 'Admin';
 
@@ -66,6 +69,11 @@ export default function AdminLayout() {
                 )}
                 <link.icon size={18} className="relative z-10" />
                 <span className="relative z-10">{link.label}</span>
+                {link.path.endsWith('/notifications') && unreadCount > 0 && (
+                  <span className="relative z-10 inline-flex min-w-5 h-5 px-1 items-center justify-center rounded-full bg-destructive text-destructive-foreground text-[10px] font-bold">
+                    {unreadCount > 99 ? '99+' : unreadCount}
+                  </span>
+                )}
               </Link>
             );
           })}
