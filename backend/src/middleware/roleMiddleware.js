@@ -6,6 +6,8 @@ const roleMiddleware = (...roles) => {
       return res.status(403).json({
         success: false,
         message: "Access denied",
+        currentRole: req.user?.role || null,
+        allowedRoles: roles,
       });
     }
     next();

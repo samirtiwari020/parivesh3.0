@@ -6,6 +6,7 @@ const allowedRoles = [
   "ADMIN",
   "STATE_REVIEWER",
   "CENTRAL_REVIEWER",
+  "COMMITTEE_REVIEWER",
   "SCRUTINY_OFFICER",
   "MOM_SECRETARIAT",
 ];
