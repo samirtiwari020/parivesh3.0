@@ -44,12 +44,12 @@ const AUTH_TOKEN_KEY = 'parivesh_auth_token';
 
 const statusMap: Record<string, ApplicationStatus> = {
   DRAFT: 'Pending',
-  SUBMITTED: 'Submitted',
-  UNDER_SCRUTINY: 'Under Review',
-  EDS_RAISED: 'Under Review',
-  RESUBMITTED: 'Under Review',
-  REFERRED_TO_MEETING: 'Committee Review',
-  IN_MEETING: 'Committee Review',
+  SUBMITTED: 'State',
+  UNDER_SCRUTINY: 'Central',
+  EDS_RAISED: 'Clarification Requested',
+  RESUBMITTED: 'State',
+  REFERRED_TO_MEETING: 'Committee',
+  IN_MEETING: 'Committee',
   APPROVED: 'Approved',
   REJECTED: 'Rejected',
 };

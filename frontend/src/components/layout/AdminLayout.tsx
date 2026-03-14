@@ -9,8 +9,6 @@ const adminLinks = [
   { icon: BarChart3, label: 'Dashboard', path: '/admin' },
   { icon: FileText, label: 'All Applications', path: '/admin/applications' },
   { icon: Users, label: 'User Management', path: '/admin/users' },
-  { icon: UserCog, label: 'Employee Mgmt', path: '/admin/employees' },
-  { icon: Shield, label: 'Reports', path: '/admin/reports' },
   { icon: Activity, label: 'System Logs', path: '/admin/logs' },
   { icon: Bell, label: 'Notifications', path: '/admin/notifications' },
   { icon: Settings, label: 'Settings', path: '/admin/settings' },

@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, FileText, FileDown, Leaf, Trees, Bird, Waves, FileQuestion } from 'lucide-react';
+import { ChevronRight, FileText, FileDown, Leaf, Trees, Bird, Waves, FileQuestion, Info, Settings } from 'lucide-react';
 import { useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const sidebarLinks = [
   'Overview',
   'Know Your Approving Authority(KYAA)',
-  'Know Your Process Flow',
   'Know Your Application Forms',
-  'Agenda & MoM',
-  'Notifications & Orders',
 ];
 
 import { LucideIcon } from 'lucide-react';
@@ -24,33 +21,55 @@ const categoryIcons: Record<string, LucideIcon> = {
 };
 
 // Mock data to show something different for each category
+// Mock data with separate sections for different content types
 const formData = {
   Environment: [
-    { name: 'Fresh Proposal Form (Env)', desc: 'Fresh Proposal Form for Environment clearance', seq: 'CAF + Fresh Proposal Form (Env)' },
-    { name: 'Amendment Proposal Form', desc: 'Amendment Proposal Form', seq: 'CAF + Amendment Proposal Form' },
+    { name: 'Fresh Proposal Form (Env)', desc: 'Fresh Proposal Form for Environment clearance', seq: 'CAF + Fresh Proposal Form (Env)', pdfUrl:'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\EC_Form_3_Ver0.3.pdf', wordUrl:'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\EC_Form_3_Ver0.3.docx'},
+    { name: 'Amendment Proposal Form', desc: 'Amendment Proposal Form', seq: 'CAF + Amendment Proposal Form', pdfUrl: 'frontend/src/assets/Know Your Application/EC_Form_4_Ver0.3.pdf', wordUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\EC_Form_4_Ver0.3.docx' },
   ],
   Forest: [
-    { name: 'Forest Diversion Form', desc: 'Form for forest land diversion', seq: 'CAF + Forest Diversion' },
-    { name: 'Tree Cutting Form', desc: 'Form for tree felling permission', seq: 'CAF + Tree Felling' },
+    { name: 'Forest Diversion Form', desc: 'Form for forest land diversion', seq: 'CAF + Forest Diversion', pdfUrl:'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\FC_A_Ver2.6.pdf', wordUrl:'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\FC_A_Ver2.6.docx'},
+    { name: 'Tree Cutting Form', desc: 'Form for tree felling permission', seq: 'CAF + Tree Felling', pdfUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\FC_B_Ver1.2.pdf', wordUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\FC_B_Ver1.2.docx' },
   ],
   Wildlife: [
-    { name: 'Wildlife Clearance Form', desc: 'Form for wildlife protected areas', seq: 'CAF + Wildlife Clearance' },
+    { name: 'Wildlife Clearance Form', desc: 'Form for wildlife protected areas', seq: 'CAF + Wildlife Clearance', pdfUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\WL_Part-I+II_Ver_1.7.pdf', wordUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\WL_Part-I+II_Ver_1.7.docx' },
   ],
   CRZ: [
-    { name: 'Fresh Proposal Form (New)', desc: 'Fresh Proposal Form of CRZ clearance', seq: 'CAF + Fresh Proposal Form (New)' },
-    { name: 'Amendment Proposal Form', desc: 'Amendment Proposal Form', seq: 'CAF + Amendment Proposal Form' },
-    { name: 'CRZ Validity Extension', desc: 'CRZ Validity Extension', seq: 'CAF + CRZ Validity Extension' },
-    { name: 'Transfer of CRZ Clearance', desc: 'Transfer of CRZ Clearance', seq: 'CAF + Transfer of CRZ Clearance' },
+    { name: 'Fresh Proposal Form (New)', desc: 'Fresh Proposal Form of CRZ clearance', seq: 'CAF + Fresh Proposal Form (New)', pdfUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\CRZ_Fresh_Proposal_form_ver0.5.pdf', wordUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\CRZ_Fresh_Proposal_form_ver0.5.docx' },
+    { name: 'Amendment Proposal Form', desc: 'Amendment Proposal Form', seq: 'CAF + Amendment Proposal Form', pdfUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\CRZ_Amendment_Clearance_Letter_(MoEFCC)_v1.1.pdf', wordUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\CRZ_Amendment_Clearance_Letter_(MoEFCC)_v1.1.docx' },
+    { name: 'CRZ Validity Extension', desc: 'CRZ Validity Extension', seq: 'CAF + CRZ Validity Extension', pdfUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\CRZ_Extension_of_Validity_Clearance_Letter_(MoEFCC)v1.1.pdf', wordUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\CRZ_Extension_of_Validity_Clearance_Letter_(MoEFCC)v1.1.docx' },
+    { name: 'Transfer of CRZ Clearance', desc: 'Transfer of CRZ Clearance', seq: 'CAF + Transfer of CRZ Clearance', pdfUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\CRZ_Transfer_Clearance_Letter_(MoEFCC)_v1.1.pdf', wordUrl: 'C:\Users\swapnil\parivesh3.0\frontend\src\assets\Know Your Application\CRZ_Transfer_Clearance_Letter_(MoEFCC)_v1.1.docx' },
   ],
+};
+
+// Image assets for different sections and categories
+// To manually add images: 
+// 1. Place your image in 'frontend/src/assets/images/'
+// 2. Import it here or use the relative path if your build system supports it
+// For now, using Unsplash placeholders. Update the 'forest' KYAA with your local path once available.
+const sectionImages = {
+  Overview: {
+    Environment: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80',
+    Forest: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&q=80',
+    Wildlife: 'https://images.unsplash.com/photo-1474511320723-9a56873867b5?auto=format&fit=crop&q=80',
+    CRZ: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80',
+  },
+  KYAA: {
+    Environment: 'https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&q=80',
+    // USER: Replace this with your actual 'forest_kyaa.png' path after adding it to assets/images/
+    Forest: '/src/assets/images/forest_kyaa.png', 
+    Wildlife: 'https://images.unsplash.com/photo-1547407139-3c921a66005c?auto=format&fit=crop&q=80',
+    CRZ: 'https://images.unsplash.com/photo-1505144808419-1957a94ca61e?auto=format&fit=crop&q=80',
+  }
 };
 
 export default function Clearances() {
   const [searchParams, setSearchParams] = useSearchParams();
   const categoryParam = searchParams.get('category');
   
-  const [activeSidebar, setActiveSidebar] = useState('Know Your Application Forms');
+  const [activeSidebar, setActiveSidebar] = useState('Overview');
   const [activeCategory, setActiveCategory] = useState(
-    categoryParam && categories.includes(categoryParam) ? categoryParam : 'CRZ'
+    categoryParam && categories.includes(categoryParam) ? categoryParam : 'Environment'
   );
 
   useEffect(() => {
@@ -218,12 +237,22 @@ export default function Clearances() {
                               <td className="px-6 py-6 font-bold text-emerald-900 text-base">{item.name}</td>
                               <td className="px-6 py-6">
                                 <div className="flex items-center justify-center gap-3">
-                                  <button className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-blue-500/25 group/btn" title="Download Word Format">
+                                  <a 
+                                    href={item.wordUrl} 
+                                    download 
+                                    className="w-10 h-10 rounded-xl bg-blue-50 text-blue-500 hover:bg-blue-500 hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-blue-500/25 group/btn" 
+                                    title="Download Word Format"
+                                  >
                                     <FileText size={18} className="group-hover/btn:scale-110 transition-transform" />
-                                  </button>
-                                  <button className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-red-500/25 group/btn" title="Download PDF Format">
+                                  </a>
+                                  <a 
+                                    href={item.pdfUrl} 
+                                    download 
+                                    className="w-10 h-10 rounded-xl bg-red-50 text-red-500 hover:bg-red-500 hover:text-white flex items-center justify-center transition-all duration-300 shadow-sm hover:shadow-red-500/25 group/btn" 
+                                    title="Download PDF Format"
+                                  >
                                     <FileDown size={18} className="group-hover/btn:scale-110 transition-transform" />
-                                  </button>
+                                  </a>
                                 </div>
                               </td>
                               <td className="px-6 py-6 text-emerald-950/70 leading-relaxed font-medium">{item.desc}</td>
@@ -249,6 +278,82 @@ export default function Clearances() {
                           )}
                         </tbody>
                       </table>
+                    </div>
+                  </div>
+                ) : activeSidebar === 'Overview' ? (
+                  <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="relative group overflow-hidden rounded-[2rem] shadow-2xl shadow-emerald-900/10 border border-white h-[400px]">
+                      <img 
+                        src={sectionImages.Overview[activeCategory as keyof typeof sectionImages.Overview]} 
+                        alt={`${activeCategory} Overview`}
+                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-emerald-950/80 via-transparent to-transparent"></div>
+                      <div className="absolute bottom-10 left-10 right-10">
+                        <h3 className="text-3xl font-serif font-bold text-white mb-2">{activeCategory} Clearance Overview</h3>
+                        <p className="text-emerald-50/90 text-lg max-w-2xl">
+                          Comprehensive guidelines and information for obtaining {activeCategory.toLowerCase()} related clearances.
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border border-white shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                            <Info size={18} />
+                          </div>
+                          What is this clearance?
+                        </h4>
+                        <p className="text-emerald-950/70 leading-relaxed">
+                          The {activeCategory} clearance process ensures that development projects are evaluated for their environmental impact and comply with state and national regulations.
+                        </p>
+                      </div>
+                      <div className="bg-white/80 backdrop-blur-sm p-8 rounded-3xl border border-white shadow-sm hover:shadow-md transition-shadow">
+                        <h4 className="text-xl font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                            <Settings size={18} />
+                          </div>
+                          Key Requirements
+                        </h4>
+                        <ul className="space-y-2 text-emerald-950/70">
+                          <li className="flex items-center gap-2">• Valid project proposal</li>
+                          <li className="flex items-center gap-2">• Environmental Impact Assessment</li>
+                          <li className="flex items-center gap-2">• Compliance with conservation acts</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                ) : activeSidebar === 'Know Your Approving Authority(KYAA)' ? (
+                  <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                    <div className="bg-white/90 backdrop-blur-sm rounded-[2rem] shadow-xl shadow-emerald-900/5 border border-white overflow-hidden p-8 md:p-12">
+                      <div className="flex flex-col items-center">
+                        <div className="text-center max-w-2xl mb-12">
+                          <h3 className="text-3xl font-serif font-bold text-emerald-950 mb-4">Approval Hierarchy</h3>
+                          <p className="text-emerald-800/60 text-lg">
+                            Understand the regulatory flow and the authorities responsible for reviewing and granting {activeCategory.toLowerCase()} clearances.
+                          </p>
+                        </div>
+                        
+                        <div className="relative w-full max-w-4xl bg-stone-50/50 rounded-2xl p-4 border border-emerald-100/50 group">
+                          <img 
+                            src={sectionImages.KYAA[activeCategory as keyof typeof sectionImages.KYAA]} 
+                            alt={`${activeCategory} Approval Flow`}
+                            className="w-full rounded-xl shadow-lg group-hover:shadow-xl transition-shadow duration-300"
+                            onError={(e) => {
+                              (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1586281380349-632531db7ed4?auto=format&fit=crop&q=80';
+                              (e.target as HTMLImageElement).alt = 'Hierarchy Placeholder';
+                            }}
+                          />
+                          
+                          {/* Instructions overlay for the Forest category if image fails to load */}
+                          {activeCategory === 'Forest' && (
+                            <div className="mt-6 p-4 bg-emerald-50/50 rounded-xl border border-emerald-100 text-sm text-emerald-800 italic text-center">
+                              Note: The hierarchy covers path from Parivesh to State Govt, MOEFCC, and IRO based on eight scenarios.
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ) : (

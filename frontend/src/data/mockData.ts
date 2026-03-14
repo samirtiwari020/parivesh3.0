@@ -1,14 +1,14 @@
 import type { Application, Notice, Manual, Notification, StatData, User, ActivityLog } from '@/types';
 
 export const mockApplications: Application[] = [
-  { id: 'ENV/2024/001', projectName: 'Highway Expansion NH-44', clearanceType: 'Environment', state: 'Maharashtra', submissionDate: '2024-10-12', status: 'Under Review', sector: 'Infrastructure', estimatedCost: '₹1,200 Cr', proponent: 'NHAI' },
+  { id: 'ENV/2024/001', projectName: 'Highway Expansion NH-44', clearanceType: 'Environment', state: 'Maharashtra', submissionDate: '2024-10-12', status: 'Central', sector: 'Infrastructure', estimatedCost: '₹1,200 Cr', proponent: 'NHAI' },
   { id: 'FOR/2024/089', projectName: 'Solar Park Phase II', clearanceType: 'Forest', state: 'Rajasthan', submissionDate: '2024-10-10', status: 'Approved', sector: 'Renewable Energy', estimatedCost: '₹850 Cr', proponent: 'NTPC Ltd' },
   { id: 'WLD/2024/045', projectName: 'Eco-Tourism Resort', clearanceType: 'Wildlife', state: 'Kerala', submissionDate: '2024-10-05', status: 'Pending', sector: 'Tourism', estimatedCost: '₹45 Cr', proponent: 'Kerala Tourism Dev Corp' },
   { id: 'CRZ/2024/012', projectName: 'Port Terminal Expansion', clearanceType: 'CRZ', state: 'Gujarat', submissionDate: '2024-09-28', status: 'Rejected', sector: 'Port & Shipping', estimatedCost: '₹3,500 Cr', proponent: 'Adani Ports' },
-  { id: 'ENV/2024/034', projectName: 'Thermal Power Plant Unit 5', clearanceType: 'Environment', state: 'Chhattisgarh', submissionDate: '2024-09-20', status: 'Committee Review', sector: 'Power', estimatedCost: '₹4,200 Cr', proponent: 'NTPC Ltd' },
+  { id: 'ENV/2024/034', projectName: 'Thermal Power Plant Unit 5', clearanceType: 'Environment', state: 'Chhattisgarh', submissionDate: '2024-09-20', status: 'Committee', sector: 'Power', estimatedCost: '₹4,200 Cr', proponent: 'NTPC Ltd' },
   { id: 'FOR/2024/102', projectName: 'Mining Expansion Block C', clearanceType: 'Forest', state: 'Jharkhand', submissionDate: '2024-09-15', status: 'Submitted', sector: 'Mining', estimatedCost: '₹600 Cr', proponent: 'Coal India Ltd' },
-  { id: 'ENV/2024/078', projectName: 'Cement Plant Modernization', clearanceType: 'Environment', state: 'Andhra Pradesh', submissionDate: '2024-09-10', status: 'Recommended', sector: 'Industry', estimatedCost: '₹320 Cr', proponent: 'UltraTech Cement' },
-  { id: 'WLD/2024/023', projectName: 'Linear Infrastructure Project', clearanceType: 'Wildlife', state: 'Madhya Pradesh', submissionDate: '2024-09-05', status: 'Under Review', sector: 'Infrastructure', estimatedCost: '₹780 Cr', proponent: 'Indian Railways' },
+  { id: 'ENV/2024/078', projectName: 'Cement Plant Modernization', clearanceType: 'Environment', state: 'Andhra Pradesh', submissionDate: '2024-09-10', status: 'Committee', sector: 'Industry', estimatedCost: '₹320 Cr', proponent: 'UltraTech Cement' },
+  { id: 'WLD/2024/023', projectName: 'Linear Infrastructure Project', clearanceType: 'Wildlife', state: 'Madhya Pradesh', submissionDate: '2024-09-05', status: 'Central', sector: 'Infrastructure', estimatedCost: '₹780 Cr', proponent: 'Indian Railways' },
   { id: 'CRZ/2024/056', projectName: 'Coastal Road Extension', clearanceType: 'CRZ', state: 'Maharashtra', submissionDate: '2024-08-28', status: 'Approved', sector: 'Infrastructure', estimatedCost: '₹12,000 Cr', proponent: 'BMC Mumbai' },
   { id: 'FOR/2024/145', projectName: 'Wind Farm Installation', clearanceType: 'Forest', state: 'Tamil Nadu', submissionDate: '2024-08-22', status: 'Pending', sector: 'Renewable Energy', estimatedCost: '₹280 Cr', proponent: 'Suzlon Energy' },
 ];
@@ -25,12 +25,12 @@ export const mockNotices: Notice[] = [
 ];
 
 export const mockManuals: Manual[] = [
-  { id: '1', title: 'User Manual for Project Proponents', description: 'Complete guide for submitting proposals via PARIVESH 3.0', category: 'General', fileSize: '4.2 MB', downloadUrl: '#' },
-  { id: '2', title: 'Environmental Clearance Submission Guide', description: 'Step-by-step walkthrough for EC applications', category: 'Environment', fileSize: '3.1 MB', downloadUrl: '#' },
-  { id: '3', title: 'Forest Clearance Application Manual', description: 'Detailed instructions for FC Stage I & II', category: 'Forest', fileSize: '5.6 MB', downloadUrl: '#' },
-  { id: '4', title: 'Wildlife Clearance Process Guide', description: 'Guide for wildlife clearance under WPA 1972', category: 'Wildlife', fileSize: '2.8 MB', downloadUrl: '#' },
-  { id: '5', title: 'CRZ Clearance Handbook', description: 'CRZ notification compliance and application guide', category: 'CRZ', fileSize: '3.4 MB', downloadUrl: '#' },
-  { id: '6', title: 'State Authority Processing Manual', description: 'For SEIAA/SEAC members processing applications', category: 'Authority', fileSize: '6.1 MB', downloadUrl: '#' },
+  { id: '1', title: 'Organization/User Registration Manual', description: 'Complete guide for submitting proposals via PARIVESH 3.0', category: 'General', fileSize: '4.2 MB', downloadUrl: '/Manuals/UserRegistration.pdf' },
+  { id: '2', title: 'Environmental Clearance Submission Guide', description: 'Step-by-step walkthrough for EC applications', category: 'Environment', fileSize: '3.1 MB', downloadUrl: '/Manuals/ec_environment_clearance_basic_flow.pdf' },
+  { id: '3', title: 'Forest Clearance Application Manual', description: 'Detailed instructions for FC Stage I & II', category: 'Forest', fileSize: '5.6 MB', downloadUrl: '/Manuals/FC_DFO_Role_Manual.pdf' },
+  { id: '4', title: 'Wildlife Clearance Process Guide', description: 'Guide for wildlife clearance under WPA 1972', category: 'Wildlife', fileSize: '2.8 MB', downloadUrl: '/Manuals/Wild_Life_PARIVESH2_Process_Flow.pdf' },
+  { id: '5', title: 'CRZ Clearance Handbook', description: 'CRZ notification compliance and application guide', category: 'CRZ', fileSize: '3.4 MB', downloadUrl: '/Manuals/CRZ_basic_flow_manual.pdf' },
+  { id: '6', title: 'Track your Proposal Manual', description: 'Track your submitted Proposal', category: 'User', fileSize: '6.1 MB', downloadUrl: '/Manuals/TrackYourProposal.pdf' },
 ];
 
 export const mockNotifications: Notification[] = [
