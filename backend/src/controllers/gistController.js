@@ -4,6 +4,304 @@ const PDFDocument = require("pdfkit");
 const Gist = require("../models/Gist");
 const Meeting = require("../models/Meeting");
 
+const PDF_THEME = {
+  primary: "#1a5c38",
+  primaryTint: "#e8f5e9",
+  border: "#cfd8d3",
+  rowAlt: "#f8fbf8",
+  text: "#1f2937",
+  muted: "#5f6b66",
+};
+
+const parseGistSections = (summaryText) => {
+  const lines = String(summaryText || "").replace(/\r/g, "").split("\n");
+  const sections = [];
+  let currentSection = null;
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    const headerMatch = line.match(/^(\d+\.\s+.+)$/);
+
+    if (headerMatch) {
+      if (currentSection) {
+        sections.push(currentSection);
+      }
+
+      currentSection = {
+        title: headerMatch[1],
+        lines: [],
+      };
+      continue;
+    }
+
+    if (!currentSection) {
+      currentSection = {
+        title: "GIST Summary",
+        lines: [],
+      };
+    }
+
+    currentSection.lines.push(rawLine);
+  }
+
+  if (currentSection) {
+    sections.push(currentSection);
+  }
+
+  return sections.map((section) => ({
+    title: section.title,
+    lines: section.lines,
+  }));
+};
+
+const parseMarkdownTableRows = (lines) => {
+  const rows = [];
+
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line.startsWith("|") || !line.endsWith("|")) {
+      continue;
+    }
+
+    const cells = line
+      .split("|")
+      .slice(1, -1)
+      .map((cell) => cell.trim());
+
+    if (!cells.length || cells.every((cell) => /^[-: ]+$/.test(cell))) {
+      continue;
+    }
+
+    rows.push(cells);
+  }
+
+  return rows;
+};
+
+const ensureSpace = (doc, heightNeeded) => {
+  const bottomLimit = doc.page.height - doc.page.margins.bottom;
+  if (doc.y + heightNeeded > bottomLimit) {
+    doc.addPage();
+  }
+};
+
+const drawPageFrame = (doc, projectName, generatedAt) => {
+  const left = doc.page.margins.left;
+  const top = doc.page.margins.top;
+  const contentWidth = doc.page.width - left - doc.page.margins.right;
+
+  doc
+    .save()
+    .rect(left, top, contentWidth, 54)
+    .fill(PDF_THEME.primary)
+    .restore();
+
+  doc
+    .fillColor("#ffffff")
+    .font("Helvetica-Bold")
+    .fontSize(14)
+    .text("MINISTRY OF ENVIRONMENT, FOREST AND CLIMATE CHANGE", left + 12, top + 10, {
+      width: contentWidth - 24,
+      align: "center",
+    });
+
+  doc
+    .font("Helvetica")
+    .fontSize(9)
+    .text("General Information Summary Table (GIST)", left + 12, top + 30, {
+      width: contentWidth - 24,
+      align: "center",
+    });
+
+  doc
+    .fillColor(PDF_THEME.muted)
+    .font("Helvetica")
+    .fontSize(8)
+    .text(projectName, left, top + 62, {
+      width: contentWidth,
+      align: "left",
+    })
+    .text(`Generated on ${generatedAt}`, left, top + 62, {
+      width: contentWidth,
+      align: "right",
+    });
+
+  doc.y = top + 82;
+};
+
+const drawFullWidthRow = (doc, text, options = {}) => {
+  const left = doc.page.margins.left;
+  const width = doc.page.width - left - doc.page.margins.right;
+  const paddingX = options.paddingX || 10;
+  const paddingY = options.paddingY || 7;
+  const fontSize = options.fontSize || 10;
+  const fontName = options.fontName || "Helvetica";
+
+  doc.font(fontName).fontSize(fontSize);
+  const textHeight = doc.heightOfString(text, { width: width - paddingX * 2, align: options.align || "left" });
+  const rowHeight = Math.max(options.minHeight || 0, textHeight + paddingY * 2);
+
+  ensureSpace(doc, rowHeight + 2);
+
+  doc
+    .save()
+    .rect(left, doc.y, width, rowHeight)
+    .fill(options.fillColor || "#ffffff")
+    .stroke(options.strokeColor || PDF_THEME.border)
+    .restore();
+
+  doc
+    .fillColor(options.textColor || PDF_THEME.text)
+    .font(fontName)
+    .fontSize(fontSize)
+    .text(text, left + paddingX, doc.y + paddingY, {
+      width: width - paddingX * 2,
+      align: options.align || "left",
+    });
+
+  doc.y += rowHeight;
+};
+
+const drawTwoColumnRow = (doc, label, value, options = {}) => {
+  const left = doc.page.margins.left;
+  const width = doc.page.width - left - doc.page.margins.right;
+  const labelWidth = options.labelWidth || 170;
+  const valueWidth = width - labelWidth;
+  const paddingX = 8;
+  const paddingY = 7;
+
+  doc.font("Helvetica-Bold").fontSize(9);
+  const labelHeight = doc.heightOfString(label, { width: labelWidth - paddingX * 2 });
+  doc.font(options.valueFont || "Helvetica").fontSize(10);
+  const valueHeight = doc.heightOfString(value, { width: valueWidth - paddingX * 2 });
+  const rowHeight = Math.max(labelHeight, valueHeight) + paddingY * 2;
+
+  ensureSpace(doc, rowHeight + 2);
+
+  doc.save();
+  doc.rect(left, doc.y, labelWidth, rowHeight).fill(options.labelFill || PDF_THEME.primaryTint).stroke(PDF_THEME.border);
+  doc.rect(left + labelWidth, doc.y, valueWidth, rowHeight).fill(options.valueFill || "#ffffff").stroke(PDF_THEME.border);
+  doc.restore();
+
+  doc
+    .fillColor(PDF_THEME.primary)
+    .font("Helvetica-Bold")
+    .fontSize(9)
+    .text(label, left + paddingX, doc.y + paddingY, {
+      width: labelWidth - paddingX * 2,
+    });
+
+  doc
+    .fillColor(PDF_THEME.text)
+    .font(options.valueFont || "Helvetica")
+    .fontSize(10)
+    .text(value, left + labelWidth + paddingX, doc.y + paddingY, {
+      width: valueWidth - paddingX * 2,
+    });
+
+  doc.y += rowHeight;
+};
+
+const drawMatrixTable = (doc, rows) => {
+  if (!rows.length) {
+    return;
+  }
+
+  const left = doc.page.margins.left;
+  const width = doc.page.width - left - doc.page.margins.right;
+  const columnCount = rows[0].length;
+  const columnWidths = columnCount === 2
+    ? [Math.min(190, width * 0.38), width - Math.min(190, width * 0.38)]
+    : Array.from({ length: columnCount }, () => width / columnCount);
+  const paddingX = 8;
+  const paddingY = 7;
+
+  rows.forEach((row, rowIndex) => {
+    const normalizedRow = row.concat(Array.from({ length: Math.max(0, columnCount - row.length) }, () => ""));
+    const isHeader = rowIndex === 0;
+
+    doc.font(isHeader ? "Helvetica-Bold" : "Helvetica").fontSize(9.5);
+    const rowHeight = normalizedRow.reduce((maxHeight, cell, cellIndex) => {
+      const height = doc.heightOfString(cell || "-", {
+        width: columnWidths[cellIndex] - paddingX * 2,
+      });
+      return Math.max(maxHeight, height);
+    }, 0) + paddingY * 2;
+
+    ensureSpace(doc, rowHeight + 2);
+
+    let currentX = left;
+    normalizedRow.forEach((cell, cellIndex) => {
+      doc.save();
+      doc
+        .rect(currentX, doc.y, columnWidths[cellIndex], rowHeight)
+        .fill(isHeader ? PDF_THEME.primaryTint : rowIndex % 2 === 0 ? PDF_THEME.rowAlt : "#ffffff")
+        .stroke(PDF_THEME.border);
+      doc.restore();
+
+      doc
+        .fillColor(isHeader ? PDF_THEME.primary : PDF_THEME.text)
+        .font(isHeader ? "Helvetica-Bold" : "Helvetica")
+        .fontSize(9.5)
+        .text(cell || "-", currentX + paddingX, doc.y + paddingY, {
+          width: columnWidths[cellIndex] - paddingX * 2,
+        });
+
+      currentX += columnWidths[cellIndex];
+    });
+
+    doc.y += rowHeight;
+  });
+};
+
+const renderSection = (doc, section) => {
+  const nonEmptyLines = section.lines.map((line) => line.trim()).filter(Boolean);
+  const tableRows = parseMarkdownTableRows(section.lines);
+  const narrativeLines = nonEmptyLines.filter((line) => !(line.startsWith("|") && line.endsWith("|")));
+
+  drawFullWidthRow(doc, section.title, {
+    fillColor: PDF_THEME.primary,
+    textColor: "#ffffff",
+    fontName: "Helvetica-Bold",
+    fontSize: 11,
+    paddingY: 8,
+  });
+
+  if (tableRows.length) {
+    drawMatrixTable(doc, tableRows);
+  }
+
+  const kvLines = [];
+  const noteLines = [];
+
+  for (const line of narrativeLines) {
+    const cleanLine = line.replace(/^[-*]\s+/, "").trim();
+    const colonIndex = cleanLine.indexOf(":");
+
+    if (colonIndex > 0) {
+      kvLines.push({
+        label: cleanLine.slice(0, colonIndex).trim(),
+        value: cleanLine.slice(colonIndex + 1).trim() || "Not Mentioned",
+      });
+    } else {
+      noteLines.push(cleanLine);
+    }
+  }
+
+  kvLines.forEach((entry) => {
+    drawTwoColumnRow(doc, entry.label, entry.value);
+  });
+
+  if (noteLines.length) {
+    drawTwoColumnRow(doc, "Details", noteLines.join("\n\n"), {
+      labelWidth: 120,
+      valueFont: "Helvetica",
+    });
+  }
+
+  doc.moveDown(0.5);
+};
+
 // Generate Gist
 exports.generateGist = async (req, res) => {
   try {
@@ -164,198 +462,66 @@ exports.downloadGistPdf = async (req, res) => {
     const generatedAt = new Date(gist.updatedAt).toLocaleDateString("en-IN", {
       day: "2-digit", month: "long", year: "numeric",
     });
+    const sections = parseGistSections(summaryText);
 
-    const doc = new PDFDocument({ margin: 50, size: "A4" });
+    const doc = new PDFDocument({
+      size: "A4",
+      margins: {
+        top: 50,
+        bottom: 52,
+        left: 45,
+        right: 45,
+      },
+    });
     const safeFileName = projectName.replace(/[^a-z0-9_\-\s]/gi, "_").replace(/\s+/g, "_");
+    const pdfChunks = [];
+    const pdfBufferPromise = new Promise((resolve, reject) => {
+      doc.on("data", (chunk) => pdfChunks.push(chunk));
+      doc.on("end", () => resolve(Buffer.concat(pdfChunks)));
+      doc.on("error", reject);
+    });
+
+    drawPageFrame(doc, projectName, generatedAt);
+    doc.on("pageAdded", () => {
+      drawPageFrame(doc, projectName, generatedAt);
+    });
+
+    drawFullWidthRow(doc, projectName, {
+      fillColor: "#f3faf4",
+      textColor: PDF_THEME.primary,
+      fontName: "Helvetica-Bold",
+      fontSize: 12,
+      paddingY: 9,
+      align: "center",
+    });
+
+    drawTwoColumnRow(doc, "Recommendation", recommendation);
+    drawTwoColumnRow(doc, "Status", gist.status || "DRAFT");
+    drawTwoColumnRow(doc, "Prepared By", gist.preparedBy?.name || gist.preparedBy?.email || "System Generated");
+
+    sections.forEach((section) => {
+      renderSection(doc, section);
+    });
+
+    doc.end();
+
+    const pdfBuffer = await pdfBufferPromise;
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader(
       "Content-Disposition",
       `inline; filename="GIST_${safeFileName}.pdf"`
     );
-    doc.pipe(res);
-
-    // ── Header ────────────────────────────────────────────────────────
-    doc
-      .rect(50, 40, doc.page.width - 100, 70)
-      .fillAndStroke("#1a5c38", "#1a5c38");
-
-    doc
-      .fillColor("white")
-      .fontSize(16)
-      .font("Helvetica-Bold")
-      .text("MINISTRY OF ENVIRONMENT, FOREST AND CLIMATE CHANGE", 60, 52, {
-        align: "center",
-        width: doc.page.width - 120,
-      });
-
-    doc
-      .fontSize(11)
-      .font("Helvetica")
-      .text("General Information Summary Table (GIST)", 60, 74, {
-        align: "center",
-        width: doc.page.width - 120,
-      });
-
-    doc.fillColor("black").moveDown(2);
-
-    // ── Project title banner ──────────────────────────────────────────
-    const titleY = 125;
-    doc
-      .rect(50, titleY, doc.page.width - 100, 36)
-      .fillAndStroke("#f0f9f0", "#c8e6c9");
-
-    doc
-      .fillColor("#1a5c38")
-      .fontSize(13)
-      .font("Helvetica-Bold")
-      .text(projectName, 60, titleY + 10, {
-        width: doc.page.width - 120,
-        align: "center",
-      });
-
-    doc.fillColor("black").y = titleY + 50;
-
-    // ── Metadata row ─────────────────────────────────────────────────
-    const metaY = doc.y;
-    const metaCols = [
-      ["Recommendation", recommendation],
-      ["Status", gist.status],
-      ["Generated", generatedAt],
-    ];
-
-    const colW = (doc.page.width - 100) / metaCols.length;
-    metaCols.forEach(([label, value], i) => {
-      const x = 50 + i * colW;
-      doc
-        .rect(x, metaY, colW, 40)
-        .fillAndStroke(i % 2 === 0 ? "#f8f8f8" : "#ffffff", "#e0e0e0");
-      doc
-        .fillColor("#666666")
-        .fontSize(8)
-        .font("Helvetica")
-        .text(label.toUpperCase(), x + 6, metaY + 6, { width: colW - 12 });
-      doc
-        .fillColor("#1a1a1a")
-        .fontSize(10)
-        .font("Helvetica-Bold")
-        .text(value, x + 6, metaY + 18, { width: colW - 12 });
-    });
-
-    doc.fillColor("black");
-    doc.y = metaY + 56;
-
-    // ── Divider ───────────────────────────────────────────────────────
-    doc
-      .moveTo(50, doc.y)
-      .lineTo(doc.page.width - 50, doc.y)
-      .stroke("#cccccc");
-    doc.moveDown(0.8);
-
-    // ── GIST body ─────────────────────────────────────────────────────
-    const lines = summaryText.split("\n");
-
-    for (const rawLine of lines) {
-      const line = rawLine.trimEnd();
-
-      // Section headers (e.g. "1. Project Overview")
-      if (/^\d+\.\s+\S/.test(line)) {
-        doc.moveDown(0.4);
-        doc
-          .rect(50, doc.y, doc.page.width - 100, 20)
-          .fillAndStroke("#e8f5e9", "#c8e6c9");
-        doc
-          .fillColor("#1a5c38")
-          .fontSize(11)
-          .font("Helvetica-Bold")
-          .text(line, 56, doc.y + 4, { width: doc.page.width - 116 });
-        doc.fillColor("black");
-        doc.moveDown(0.6);
-        continue;
-      }
-
-      // Markdown table rows
-      if (line.startsWith("|") && line.endsWith("|")) {
-        const cells = line
-          .split("|")
-          .slice(1, -1)
-          .map((c) => c.trim());
-
-        // skip separator rows (---|---)
-        if (cells.every((c) => /^[-: ]+$/.test(c))) continue;
-
-        const isHeader = cells.some((c) => /^[A-Z]/.test(c)) && !cells[0].match(/^\d/);
-        const cellW = (doc.page.width - 100) / cells.length;
-        const rowY = doc.y;
-        const rowH = 18;
-
-        cells.forEach((cell, ci) => {
-          doc
-            .rect(50 + ci * cellW, rowY, cellW, rowH)
-            .fillAndStroke(isHeader ? "#e8f5e9" : ci % 2 === 0 ? "#fafafa" : "#ffffff", "#e0e0e0");
-          doc
-            .fillColor(isHeader ? "#1a5c38" : "#333333")
-            .fontSize(9)
-            .font(isHeader ? "Helvetica-Bold" : "Helvetica")
-            .text(cell, 54 + ci * cellW, rowY + 4, { width: cellW - 8, lineBreak: false });
-        });
-
-        doc.fillColor("black");
-        doc.y = rowY + rowH;
-        continue;
-      }
-
-      // Bullet points
-      if (line.startsWith("- ") || line.startsWith("* ")) {
-        doc
-          .fillColor("#333333")
-          .fontSize(10)
-          .font("Helvetica")
-          .text(`• ${line.slice(2)}`, 60, doc.y, {
-            width: doc.page.width - 120,
-          });
-        continue;
-      }
-
-      // Empty line → small gap
-      if (line.trim() === "") {
-        doc.moveDown(0.3);
-        continue;
-      }
-
-      // Default body text
-      doc
-        .fillColor("#333333")
-        .fontSize(10)
-        .font("Helvetica")
-        .text(line, 50, doc.y, { width: doc.page.width - 100 });
-    }
-
-    // ── Footer ────────────────────────────────────────────────────────
-    const footerY = doc.page.height - 50;
-    doc
-      .moveTo(50, footerY)
-      .lineTo(doc.page.width - 50, footerY)
-      .stroke("#cccccc");
-    doc
-      .fillColor("#888888")
-      .fontSize(8)
-      .font("Helvetica")
-      .text(
-        `Prepared by Parivesh Environmental Clearance System  •  Generated on ${generatedAt}`,
-        50,
-        footerY + 6,
-        { align: "center", width: doc.page.width - 100 }
-      );
-
-    doc.end();
+    res.send(pdfBuffer);
   } catch (error) {
-    if (!res.headersSent) {
-      res.status(500).json({
-        success: false,
-        message: "Failed to generate GIST PDF",
-        error: error.message,
-      });
+    if (res.headersSent) {
+      return;
     }
+
+    res.status(500).json({
+      success: false,
+      message: "Failed to generate GIST PDF",
+      error: error.message,
+    });
   }
 };
