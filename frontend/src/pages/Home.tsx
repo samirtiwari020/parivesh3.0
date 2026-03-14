@@ -72,10 +72,13 @@ export default function Home() {
                 ENVIRONMENTAL SINGLE WINDOW HUB
               </motion.div>
               
-              <h1 className="text-5xl md:text-6xl lg:text-8xl font-serif font-extrabold text-white leading-[1.1] mb-6 tracking-tight drop-shadow-xl">
-                <span className="block text-accent mb-2">Pro-Active</span>
-                Responsive Facilitation
-              </h1>
+              <div className="mb-8 relative z-10 group/title">
+                <h1 className="text-5xl md:text-7xl lg:text-[7rem] font-serif font-bold text-white tracking-tight flex items-baseline gap-4 md:gap-6 drop-shadow-2xl">
+                  <span>PARIVESH</span>
+                  <span className="text-4xl md:text-6xl lg:text-[6rem] text-transparent bg-clip-text bg-gradient-to-r from-accent to-emerald-300 font-light tracking-wide drop-shadow-sm">3.0</span>
+                </h1>
+                <div className="h-1.5 w-24 md:w-32 bg-gradient-to-r from-accent to-transparent mt-6 rounded-full opacity-80" />
+              </div>
               
               <p className="text-lg md:text-2xl text-emerald-50/90 mb-10 leading-relaxed max-w-2xl font-light drop-shadow-md">
                 A virtuous environmental hub for online submission and monitoring of proposals for Clearances from the Government of India.

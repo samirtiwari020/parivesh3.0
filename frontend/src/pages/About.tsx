@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Home, Leaf, Shield, CheckCircle2, Sprout, Eye, Compass, Workflow, Globe, Wind } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, Variants } from 'framer-motion';
 
 const tabs = [
   { id: 'objective', label: 'Objective', icon: Compass },
@@ -9,12 +9,12 @@ const tabs = [
   { id: 'modules', label: 'Modules', icon: Globe },
 ];
 
-const fadeUpVariants = {
+const fadeUpVariants: Variants = {
   hidden: { opacity: 0, y: 30 },
   visible: (custom: number) => ({
     opacity: 1,
     y: 0,
-    transition: { delay: custom * 0.1, duration: 0.6, ease: [0.2, 0.65, 0.3, 0.9] },
+    transition: { delay: custom * 0.1, duration: 0.6, ease: "easeOut" },
   }),
 };
 
@@ -71,7 +71,7 @@ export default function About() {
                 custom={3} initial="hidden" animate="visible" variants={fadeUpVariants}
                 className="text-lg md:text-xl text-slate-600 leading-relaxed font-medium max-w-xl"
               >
-                PARIVESH 2.0 is the definitive single-window hub for processing Environment, Forest, Wildlife, and Coastal Regulation Zone clearances securely and sustainably.
+                PARIVESH 3.0 is the definitive single-window hub for processing Environment, Forest, Wildlife, and Coastal Regulation Zone clearances securely and sustainably.
               </motion.p>
               
               <motion.div 
@@ -229,7 +229,7 @@ export default function About() {
                       In pursuant to <strong className="text-slate-800">'Digital India'</strong> and capturing the spirit of Minimum Government and Maximum Governance, a Single-Window named <strong className="text-emerald-700">PARIVESH</strong> (Pro-Active and Responsive facilitation by Interactive, Virtuous, and Environmental Single Window Hub) has been developed by the MOEFCC through NIC.
                     </p>
                     <p className="mt-6">
-                      Encouraged by the success of the existing system, its scope has been further onboarded with a technology-driven and professionally run institutional mechanism. It provides a comprehensive single window solution for the administration of all green clearances and monitors their subsequent compliance across the nation. Process transformation, technology transformation, and domain knowledge intervention were the key drivers behind the framework of the new PARIVESH 2.0.
+                      Encouraged by the success of the existing system, its scope has been further onboarded with a technology-driven and professionally run institutional mechanism. It provides a comprehensive single window solution for the administration of all green clearances and monitors their subsequent compliance across the nation. Process transformation, technology transformation, and domain knowledge intervention were the key drivers behind the framework of the new PARIVESH 3.0.
                     </p>
                   </div>
                   
@@ -273,7 +273,7 @@ export default function About() {
                     {[
                       { title: "Initial Launch", desc: "Launch of the foundational portal dedicated solely to Environmental Clearances.", icon: Sprout },
                       { title: "Unified Integration", desc: "Integration of Forest, Wildlife, and CRZ clearances into a unified, accessible platform.", icon: Globe },
-                      { title: "PARIVESH 2.0", desc: "Transition to version 2.0 focusing on end-to-end process automation and user experience.", icon: Workflow },
+                      { title: "PARIVESH 3.0", desc: "Transition to version 3.0 focusing on end-to-end process automation and user experience.", icon: Workflow },
                       { title: "Advanced Analytics", desc: "Implementation of GIS-based decision support systems and predictive analytics.", icon: Compass },
                     ].map((step, idx) => {
                       const StepIcon = step.icon;

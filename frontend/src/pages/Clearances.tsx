@@ -12,9 +12,11 @@ const sidebarLinks = [
   'Notifications & Orders',
 ];
 
+import { LucideIcon } from 'lucide-react';
+
 const categories = ['Environment', 'Forest', 'Wildlife', 'CRZ'];
 
-const categoryIcons: Record<string, any> = {
+const categoryIcons: Record<string, LucideIcon> = {
   Environment: Leaf,
   Forest: Trees,
   Wildlife: Bird,

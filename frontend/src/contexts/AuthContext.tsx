@@ -140,6 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           token,
         });
       } catch {
+        // Ignore logout errors as we are clearing local state anyway
       }
     }
 
